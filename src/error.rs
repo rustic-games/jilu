@@ -19,6 +19,9 @@ pub enum Error {
     /// The commit type is not accepted.
     InvalidCommitType,
 
+    /// The provided Git tag is invalid.
+    InvalidTag,
+
     /// The commit is missing a message.
     MissingCommitMessage,
 
@@ -41,6 +44,7 @@ impl fmt::Display for Error {
             Format(ref err) => write!(f, "Format error: {}", err),
             Generic(ref string) => write!(f, "Unknown error: {}", string),
             InvalidCommitType => f.write_str("Invalid commit type"),
+            InvalidTag => f.write_str("Invalid Git tag"),
             Git(ref err) => write!(f, "Git error: {}", err),
             MissingCommitMessage => f.write_str("Missing commit message"),
             SemVer(ref err) => write!(f, "SemVer error: {}", err),
@@ -59,7 +63,7 @@ impl error::Error for Error {
             SemVer(ref err) => Some(err),
             Timestamp(ref err) => Some(err),
 
-            Generic(_) | InvalidCommitType | MissingCommitMessage | Utf8Error => None,
+            Generic(_) | InvalidCommitType | InvalidTag | MissingCommitMessage | Utf8Error => None,
         }
     }
 }

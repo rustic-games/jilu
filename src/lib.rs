@@ -119,6 +119,10 @@ impl ChangeSet {
         accept_types: &Option<Vec<String>>,
         tag: Option<&Tag>,
     ) -> Result<(), Error> {
+        if commits.is_empty() {
+            return Ok(());
+        }
+
         let idx = match tag {
             None => Some(commits.len() - 1),
             Some(tag) => commits

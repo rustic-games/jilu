@@ -1,104 +1,132 @@
-use git2::Oid;
+use crate::Error;
+use boolinator::Boolinator;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fs::read_to_string;
+use std::io;
 
-const TITLE: &str = "Changelog";
-const DESCRIPTION: &str = "\
-All notable changes to this project are documented in this file.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Config {
+    pub github: Option<Github>,
+    pub accept_types: Option<Vec<String>>,
+    pub type_headers: HashMap<String, String>,
 
-The format is based on [Keep a Changelog], and this project adheres to
-[Semantic Versioning]. The file is auto-generated using [Conventional Commits].
+    #[serde(skip)]
+    pub template: Option<String>,
 
-[keep a changelog]: https://keepachangelog.com/en/1.0.0/
-[semantic versioning]: https://semver.org/spec/v2.0.0.html
-[conventional commits]: https://www.conventionalcommits.org/en/v1.0.0-beta.4/\
-";
-const THANK_YOU: &str = "\
-This release was made possible by the following people (in alphabetical order).
-Thank you all for your contributions. Your work – no matter how significant – is
-greatly appreciated by the community. 💖\
-";
-
-#[derive(Debug)]
-pub struct Config<'a> {
-    pub title: &'a str,
-    pub description: Option<&'a str>,
-    pub toc: bool,
-    pub root: Option<Oid>,
-    pub unreleased: bool,
-    pub contributors: Contributors<'a>,
-    pub types: HashMap<&'a str, &'a str>,
-    pub ignore: Ignore<'a>,
-    pub commit: Commit,
-    pub github: Github<'a>,
+    #[serde(skip)]
+    pub metadata: Option<String>,
 }
 
-impl<'a> Default for Config<'a> {
+impl Default for Config {
     fn default() -> Self {
         let mut types = HashMap::new();
-        types.insert("fix", "bug fixes");
-        types.insert("style", "code styling");
-        types.insert("docs", "documentation");
-        types.insert("feat", "features");
-        types.insert("perf", "performance improvements");
-        types.insert("refactor", "refactoring");
-        types.insert("test", "tests");
-
-        // FIXME: TESTING DATA
-        // let github = Github {
-        //     repo: Some("https://github.com/rustic-games/prototype"),
-        // };
-        let github = Github::default();
+        types.insert("fix", "Bug Fixes");
+        types.insert("style", "Code Styling");
+        types.insert("docs", "Documentation");
+        types.insert("feat", "Features");
+        types.insert("perf", "Performance Improvements");
+        types.insert("refactor", "Refactoring");
+        types.insert("test", "Tests");
+        types.insert("chore", "Miscellaneous Tasks");
+        let type_headers = types
+            .into_iter()
+            .map(|(k, v)| (k.to_owned(), v.to_owned()))
+            .collect();
 
         Self {
-            title: TITLE,
-            description: Some(DESCRIPTION),
-            toc: true,
-            root: None,
-            unreleased: true,
-            contributors: Contributors::default(),
-            types,
-            ignore: Ignore::default(),
-            commit: Commit::default(),
-            github,
+            github: None,
+            accept_types: None,
+            type_headers,
+            template: None,
+            metadata: None,
         }
     }
 }
 
-#[derive(Debug, Default)]
-pub struct Ignore<'a> {
-    types: Vec<&'a str>,
-    commits: Vec<Oid>,
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct Github {
+    pub repo: String,
 }
 
-#[derive(Debug)]
-pub struct Commit {
-    pub body: bool,
-}
-
-impl<'a> Default for Commit {
-    fn default() -> Self {
-        Self { body: true }
+impl Config {
+    pub fn from_environment() -> Result<Self, Error> {
+        Ok(Self::from_file("CHANGELOG.md")?.unwrap_or_default())
     }
-}
 
-#[derive(Debug)]
-pub struct Contributors<'a> {
-    pub show: bool,
-    pub thank_you: Option<&'a str>,
-    pub ignore: Vec<&'a str>,
-}
+    fn from_file(name: &str) -> Result<Option<Self>, Error> {
+        let text = match read_to_string(name) {
+            Ok(file) => file,
+            Err(err) => match err.kind() {
+                io::ErrorKind::NotFound => return Ok(None),
+                _ => return Err(err.into()),
+            },
+        };
 
-impl<'a> Default for Contributors<'a> {
-    fn default() -> Self {
-        Self {
-            show: true,
-            thank_you: Some(THANK_YOU),
-            ignore: vec![],
+        let mut metadata = vec![];
+        for line in text.lines().rev().skip_while(|l| !l.contains("-->")) {
+            metadata.push(line);
+
+            if line.contains("<!--") {
+                break;
+            }
         }
-    }
-}
 
-#[derive(Debug, Default)]
-pub struct Github<'a> {
-    pub repo: Option<&'a str>,
+        metadata.reverse();
+
+        let mut config: Vec<&str> = vec![];
+        let mut template: Vec<&str> = vec![];
+        let mut bit = 0;
+        for line in &metadata {
+            // Start configuration fetching.
+            if line.trim_end() == "Config(" {
+                bit = 1;
+                config.push("#![enable(implicit_some)]");
+                config.push(line);
+                continue;
+            }
+
+            // End configuration fetching.
+            if bit == 1 && line.trim_end() == ")" {
+                bit = 0;
+                config.push(line);
+                continue;
+            }
+
+            // Continue configuration fetching.
+            if bit == 1 {
+                config.push(line);
+                continue;
+            }
+
+            // Start template fetching.
+            if line.trim_end() == "Template(" {
+                bit = 2;
+                continue;
+            }
+
+            // End template fetching.
+            if bit == 2 && line.trim_end() == ")" {
+                bit = 0;
+                continue;
+            }
+
+            // Continue template fetching.
+            if bit == 2 {
+                template.push(line);
+            }
+        }
+
+        let config = config.join("\n");
+
+        Ok(if config.contains(&"Config") {
+            let mut config: Config = ron::de::from_str(&config)?;
+            config.template = (!template.is_empty()).as_some(template.join("\n"));
+            config.metadata = (!metadata.is_empty()).as_some(metadata.join("\n"));
+            Some(config)
+        } else {
+            None
+        })
+    }
 }

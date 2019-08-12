@@ -12,10 +12,7 @@ fn main() {
 
 fn run() -> Result<String, Error> {
     let repo = git2::Repository::open(".")?;
-    let config = Config::default();
-    let mut out = String::new();
+    let config = Config::from_environment()?;
 
-    Changelog::new(config, git::commits(&repo)?, git::tags(&repo)?)?.format(&mut out)?;
-
-    Ok(out)
+    Changelog::new(config, git::commits(&repo)?, git::tags(&repo)?)?.render()
 }

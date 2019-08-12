@@ -181,63 +181,59 @@ Commit messages that need to be excluded can be, based on a set of rules:
 
 #### Configurable
 
-**_work in progress_**
+**Jilu** has a powerful configuration system that stays out of your way when you
+don't need it, but allows you to automate the construction of your change log
+in a way that works best for your project or community.
 
-~~The output of the change log can be tweaked with custom styling and
-translations.~~
+You can:
 
-~~You can:~~
+- [x] set header names for grouped changes (features, fixes, etc.)
+- [x] ignore specific commit types
+- [x] fully customize the change log template
 
-- [ ] ~~provide a change log title~~
-- [ ] ~~provide a change log description~~
-- [ ] ~~show a table of contents to jump to specific releases~~
-- [ ] ~~show unreleased changes~~
-- [ ] ~~show release contributors~~
-- [ ] ~~rename commit type headers~~
-- [ ] ~~ignore specific commit types~~
-- [ ] ~~show commit bodies below the title~~
+You can check out the bottom of [this project's change log] for its
+configuration, and [the default template][tpl] to see how the templating system
+works.
 
-~~All of these come with sane defaults.~~
-
-~~The configuration can be encoded inside a change log file, using a HTML
-comment at the bottom of the document. This prevents the need for another
-top-level configuration file, but will also prevent the configuration from
-rendering in Markdown formatting mode:~~
+Here's a quick example of what's possible (this snippet goes at the bottom of
+your own `CHANGELOG.md` file):
 
 ```markdown
-<!-- Jilu(
-    title: "Change Log",
-    description: "Hello World!",
-    toc: true,
-    root: "4fg0cfa",
-    unreleased: true,
-    contributors: true,
-    headers: {
-        "feat": "Features",
-        "fix": "Bug Fixes",
-    },
-    ignore: Ignore(
-        types: ["refactor", "chore"],
-        commits: ["vd3g0ka"],
-    ),
-    commit: {
-        body: true,
-    },
-) -->
+<!--
+Config(
+  github: ( repo: "rustic-games/jilu" ),
+  accept_types: ["feat", "fix", "perf"],
+  type_headers: {
+    "feat": "Features",
+    "fix": "Bug Fixes",
+    "perf": "Performance Improvements"
+  }
+)
+
+Template(
+# My Change Log
+
+## Upcoming Changes
+
+{% for change in unreleased.changes %}
+- {{ change.description }} ([`{{ change.commit.short_id }}`])
+{%- endfor %}
+)
+-->
 ```
 
-~~By default, `jilu` will look for a top-level `CHANGELOG.md` file to find its
-configuration, this can be changed using `jilu --config /path/to/config`.~~
+Putting the configuration _inside_ the change log file itself ensures that the
+configuration can be read by **Jilu**, but won't show up in the markdown
+rendered document and is easy to ignore in text format, since it will always be
+at the end of the change log. It also means you don't need to add _another_
+configuration file to your Git repository root.
 
-~~Alternatively, CLI flags can be used to achieve the same result. Most flags
-are similar to the configuration names, using `--title`, `--description`, etc.
-The exceptions are:~~
+The templating system uses the [Tera] library to provide Django-like syntax. If
+no template is defined, the [default template][tpl] is used instead.
 
-- `--headers TYPE=NAME,...`
-- `--ignore-types TYPE,...`
-- `--ignore-commits COMMIT,...`
-- `--commit-body true`
-
+[this project's change log]: ./CHANGELOG.md
+[tera]: https://tera.netlify.com/
+[tpl]: ./template.md
 [conventional commits]: https://www.conventionalcommits.org/en/v1.0.0-beta.4/
 [semver]: https://semver.org/
 [keep a changelog]: https://keepachangelog.com/en/1.0.0/

@@ -1,6 +1,7 @@
 pub mod config;
 pub mod error;
 pub mod git;
+mod render;
 
 pub use config::Config;
 pub use error::Error;
@@ -9,23 +10,20 @@ use chrono::{offset::Utc, DateTime};
 use conventional_commit::ConventionalCommit;
 use git::{Commit, Tag};
 use semver::Version;
+use serde::ser::{SerializeStruct, Serializer};
+use serde::Serialize;
 use std::collections::HashMap;
-use std::fmt::Write;
 use std::str::FromStr;
 
-#[derive(Debug)]
-pub struct Changelog<'a> {
-    config: Config<'a>,
+#[derive(Debug, Serialize)]
+pub struct Changelog {
+    config: Config,
     unreleased: ChangeSet,
     releases: Vec<Release>,
 }
 
-impl<'a> Changelog<'a> {
-    pub fn new(
-        config: Config<'a>,
-        mut commits: Vec<Commit>,
-        tags: Vec<Tag>,
-    ) -> Result<Self, Error> {
+impl Changelog {
+    pub fn new(config: Config, mut commits: Vec<Commit>, tags: Vec<Tag>) -> Result<Self, Error> {
         let mut releases = tags
             .into_iter()
             .map(Release::new)
@@ -33,14 +31,14 @@ impl<'a> Changelog<'a> {
 
         for release in &mut releases {
             let mut changeset = ChangeSet::default();
-            changeset.take_commits(&mut commits, Some(release.tag()), &config.types)?;
+            changeset.take_commits(&mut commits, &config.accept_types, Some(release.tag()))?;
             release.with_changeset(changeset);
         }
 
         releases.reverse();
 
         let mut unreleased = ChangeSet::default();
-        unreleased.take_commits(&mut commits, None, &config.types)?;
+        unreleased.take_commits(&mut commits, &config.accept_types, None)?;
 
         Ok(Self {
             config,
@@ -49,210 +47,28 @@ impl<'a> Changelog<'a> {
         })
     }
 
-    pub fn format<W: Write>(&self, f: &mut W) -> Result<(), Error> {
-        writeln!(f, "# {}\n", self.config.title)?;
-
-        if let Some(description) = &self.config.description {
-            writeln!(f, "{}\n", description)?;
-        }
-
-        if self.config.toc {
-            self.format_toc(f)?;
-        }
-
-        if self.config.unreleased {
-            self.format_unreleased(f)?;
-        }
-
-        for r in &self.releases {
-            self.format_release(f, r)?;
-        }
-
-        self.format_references(f)
-    }
-
-    fn format_toc<W: Write>(&self, f: &mut W) -> Result<(), Error> {
-        f.write_str("## Overview\n\n")?;
-        f.write_str("- [_unreleased_](#unreleased)\n")?;
-
-        for r in &self.releases {
-            let date = r.date().format("%Y.%m.%d");
-            let mut tag = r.version().to_string();
-            tag.retain(|c| !".".contains(c));
-
-            writeln!(f, "- [**`{}`**](#{}) – _{}_", r.version(), tag, date)?;
-        }
-
-        f.write_str("\n").map_err(Into::into)
-    }
-
-    fn format_unreleased<W: Write>(&self, f: &mut W) -> Result<(), Error> {
-        f.write_str("## _[Unreleased]_\n\n")?;
-
-        if self.unreleased.changes().is_empty() {
-            f.write_str("_nothing new to show for… yet!_\n\n")?;
-        } else {
-            for (_ty, changes) in self.unreleased.changes() {
-                for change in &changes {
-                    writeln!(f, "- **{}** ([`{}`])", change.title(), change.short_id())?;
-                }
-            }
-        }
-
-        f.write_str("\n").map_err(Into::into)
-    }
-
-    fn format_release<W: Write>(&self, f: &mut W, r: &Release) -> Result<(), Error> {
-        use inflector::cases::titlecase::to_title_case;
-
-        // details
-        write!(f, "## [{}]", r.version())?;
-        if let Some(title) = r.title() {
-            write!(f, " – _{}_", title)?;
-        }
-        f.write_str("\n\n")?;
-
-        writeln!(f, "_{}_\n", r.date().format("%Y.%m.%d"))?;
-
-        // description
-        if let Some(notes) = r.notes() {
-            writeln!(f, "{}\n", notes)?;
-        }
-
-        // contributors
-        if self.config.contributors.show {
-            let ignore = &self.config.contributors.ignore;
-            let contributors = r.changeset().contributors(Some(ignore));
-
-            if !contributors.is_empty() {
-                f.write_str("### Contributions\n\n")?;
-
-                if let Some(thank_you) = &self.config.contributors.thank_you {
-                    writeln!(f, "{}\n", thank_you)?;
-                }
-
-                for contributor in r.changeset().contributors(None) {
-                    write!(f, "- {}", contributor.name())?;
-                    write!(f, " \\(<{}>\\)", contributor.email())?;
-
-                    f.write_str("\n")?;
-                }
-
-                f.write_str("\n")?;
-            }
-        }
-
-        // changes
-        f.write_str("### Changes\n\n")?;
-
-        let mut types = vec![];
-        for (ty, changes) in r.changeset().changes() {
-            types.push(ty);
-
-            writeln!(f, "#### {}\n", to_title_case(&ty.to_string()))?;
-
-            for change in &changes {
-                writeln!(f, "- **{}** ([`{}`])", change.title(), change.short_id())?;
-
-                if self.config.commit.body {
-                    if let Some(body) = change.body() {
-                        f.write_str("\n")?;
-
-                        let mut result = String::new();
-                        for line in body.lines() {
-                            if line.chars().any(|c| !c.is_whitespace()) {
-                                result.push_str("  ");
-                                result.push_str(line);
-                            }
-                            result.push('\n');
-                        }
-
-                        write!(f, "{}", result)?;
-                    }
-                }
-
-                f.write_str("\n")?;
-            }
-        }
-
-        // missing
-        let missing = self
+    pub fn render(&self) -> Result<String, Error> {
+        let context = tera::Context::from_serialize(self)?;
+        let mut tera = tera::Tera::default();
+        let template = self
             .config
-            .types
-            .values()
-            .filter(|v| !types.contains(v))
-            .copied()
-            .collect::<Vec<_>>();
+            .template
+            .as_ref()
+            .map(String::as_str)
+            .unwrap_or(include_str!("../template.md"));
 
-        if !missing.is_empty() {
-            f.write_str("#### _Unchanged_\n\n")?;
+        let type_header = render::TypeHeader(self.config.type_headers.clone());
 
-            writeln!(
-                f,
-                "_The following categories contain no changes in this release:\n{}_.\n",
-                missing.join(", ")
-            )?;
-        };
+        tera.add_raw_template("template", template)?;
+        tera.register_filter("indent", render::indent);
+        tera.register_filter("typeheader", type_header);
 
-        Ok(())
-    }
-
-    fn format_references<W: Write>(&self, f: &mut W) -> Result<(), Error> {
-        f.write_str("<!-- [releases] -->\n\n")?;
-
-        if self.config.unreleased {
-            if let Some(repo) = &self.config.github.repo {
-                if let Some(tag) = self.releases.first().map(|r| r.tag()) {
-                    writeln!(f, "[unreleased]: {}/compare/{}...HEAD", repo, tag.name)?;
-                } else {
-                    writeln!(f, "[unreleased]: {}/commits", repo)?;
-                }
-            } else {
-                f.write_str("[unreleased]: #\n")?;
-            }
+        let mut log = tera.render("template", context)?;
+        if let Some(metadata) = &self.config.metadata {
+            log.push_str(&format!("\n{}\n", metadata));
         }
 
-        for r in &self.releases {
-            if let Some(repo) = &self.config.github.repo {
-                writeln!(
-                    f,
-                    "[{}]: {}/releases/tag/{}",
-                    r.version(),
-                    repo,
-                    r.tag().name
-                )?;
-            } else {
-                f.write_str("[unreleased]: #\n")?;
-            }
-        }
-
-        f.write_str("\n<!-- [commits] -->\n\n")?;
-
-        for (_ty, changes) in self.unreleased.changes() {
-            for change in changes {
-                let id = change.short_id();
-                if let Some(repo) = &self.config.github.repo {
-                    writeln!(f, "[`{}`]: {}/commit/{}", id, repo, change.id())?;
-                } else {
-                    writeln!(f, "[`{}`]: #", id)?;
-                };
-            }
-        }
-
-        for r in &self.releases {
-            for (_ty, changes) in r.changeset.changes() {
-                for change in changes {
-                    let id = change.short_id();
-                    if let Some(repo) = &self.config.github.repo {
-                        writeln!(f, "[`{}`]: {}/commit/{}", id, repo, change.id())?;
-                    } else {
-                        writeln!(f, "[`{}`]: #", id)?;
-                    };
-                }
-            }
-        }
-
-        Ok(())
+        Ok(log)
     }
 }
 
@@ -263,7 +79,7 @@ struct ChangeSet {
     changes: Vec<Change>,
 }
 
-impl<'repo> ChangeSet {
+impl ChangeSet {
     /// Given a set of Git commits, take all commits belonging to this change
     /// set.
     ///
@@ -277,6 +93,10 @@ impl<'repo> ChangeSet {
     ///
     /// This method mutates the provided slice of commits. After it is done, the
     /// slice will contain only those commits not part of this change set.
+    ///
+    /// If any type filters are provided, any commit that would be part of the
+    /// change set is removed from the commit list, but not added to the change
+    /// set.
     ///
     /// # Important
     ///
@@ -296,68 +116,65 @@ impl<'repo> ChangeSet {
     pub fn take_commits(
         &mut self,
         commits: &mut Vec<Commit>,
+        accept_types: &Option<Vec<String>>,
         tag: Option<&Tag>,
-        types: &HashMap<&str, &str>,
     ) -> Result<(), Error> {
-        match tag {
-            None => {
-                let mut changes = commits
-                    .drain(0..)
-                    .filter_map(|commit| match Change::new(commit, &types) {
-                        Err(Error::InvalidCommitType) => None,
-                        Err(err) => Some(Err(err)),
-                        Ok(change) => Some(Ok(change)),
-                    })
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                self.changes.append(&mut changes)
-            }
+        let changes = match tag {
+            None => commits
+                .drain(0..)
+                .filter_map(|commit| match Change::new(commit) {
+                    Err(Error::InvalidCommitType) => None,
+                    Err(err) => Some(Err(err)),
+                    Ok(change) => Some(Ok(change)),
+                })
+                .collect::<Result<Vec<_>, _>>()?,
             Some(tag) => {
+                let mut changes = vec![];
                 let mut target = Some(&tag.commit);
 
                 while let Some(commit) = target {
                     if let Some(idx) = commits.iter().position(|c| c.id == commit.id) {
                         let commit = commits.remove(idx);
 
-                        match Change::new(commit, &types) {
+                        match Change::new(commit) {
                             Err(Error::InvalidCommitType) => {}
                             Err(err) => return Err(err),
-                            Ok(change) => self.changes.push(change),
+                            Ok(change) => changes.push(change),
                         };
                     };
 
                     target = commit.parent.as_ref().map(AsRef::as_ref)
                 }
+
+                changes
             }
-        }
+        };
+
+        self.changes.append(
+            &mut changes
+                .into_iter()
+                .filter(|c| {
+                    if let Some(types) = accept_types {
+                        types.iter().any(|f| f == c.type_())
+                    } else {
+                        true
+                    }
+                })
+                .collect(),
+        );
 
         Ok(())
     }
 
-    /// Return a list of changes, grouped by the change type.
-    ///
-    /// Any commit not adhering to the conventional commit standard is ignored
-    /// in this list.
-    ///
-    /// Similarly, any conventional commit with a type that is not configured is
-    /// ignored.
-    pub fn changes(&self) -> HashMap<&str, Vec<&Change>> {
-        let mut changes = HashMap::new();
-
-        for change in &self.changes {
-            let entry = changes
-                .entry(change.type_header())
-                .or_insert_with(|| vec![]);
-            entry.push(change);
-        }
-
-        changes
+    /// Return the list of changes in this change set.
+    pub fn changes(&self) -> &[Change] {
+        &self.changes
     }
 
     /// A list of people who contributed to this change set.
     ///
     /// You can pass in a list of optional contributor names to ignore.
-    pub fn contributors(&self, ignore: Option<&[&str]>) -> Vec<Contributor> {
+    pub fn contributors(&self, ignore: Option<&[String]>) -> Vec<Contributor> {
         let ignore = ignore.unwrap_or(&[]);
         let mut authors = HashMap::new();
 
@@ -369,11 +186,23 @@ impl<'repo> ChangeSet {
         let mut contributors = authors
             .into_iter()
             .map(Into::into)
-            .filter(|c: &Contributor| !ignore.contains(&c.name()))
+            .filter(|c: &Contributor| !ignore.iter().any(|name| name == &c.name))
             .collect::<Vec<_>>();
 
         contributors.sort_unstable_by(|a, b| a.name.cmp(&b.name));
         contributors
+    }
+}
+
+impl Serialize for ChangeSet {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("ChangeSet", 2)?;
+        state.serialize_field("changes", &self.changes())?;
+        state.serialize_field("contributors", &self.contributors(None))?;
+        state.end()
     }
 }
 
@@ -387,6 +216,21 @@ struct Release {
 
     /// Internal reference to the change set of this release.
     changeset: ChangeSet,
+}
+
+impl Serialize for Release {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("Release", 5)?;
+        state.serialize_field("version", &self.version())?;
+        state.serialize_field("title", &self.title())?;
+        state.serialize_field("notes", &self.notes())?;
+        state.serialize_field("date", &self.date())?;
+        state.serialize_field("changeset", &self.changeset())?;
+        state.end()
+    }
 }
 
 impl Release {
@@ -468,19 +312,10 @@ impl Release {
 }
 
 /// The contributor to a change.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 struct Contributor {
     name: String,
     email: String,
-}
-
-impl Contributor {
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-    pub fn email(&self) -> &str {
-        &self.email
-    }
 }
 
 impl From<(&str, &str)> for Contributor {
@@ -497,29 +332,15 @@ impl From<(&str, &str)> for Contributor {
 struct Change {
     commit: Commit,
     conventional: ConventionalCommit,
-    ty: String,
 }
 
 impl Change {
-    pub fn new(commit: Commit, types: &HashMap<&str, &str>) -> Result<Self, Error> {
+    pub fn new(commit: Commit) -> Result<Self, Error> {
         let conventional = ConventionalCommit::from_str(&commit.message)?;
-
-        let ty = types
-            .iter()
-            .find_map(|(k, v)| {
-                if *k == conventional.type_() {
-                    Some(v)
-                } else {
-                    None
-                }
-            })
-            .ok_or(Error::InvalidCommitType)?
-            .to_string();
 
         Ok(Self {
             commit,
             conventional,
-            ty,
         })
     }
 
@@ -528,13 +349,8 @@ impl Change {
         &self.conventional.type_()
     }
 
-    /// The long-form header-style name of the type of the change.
-    pub fn type_header(&self) -> &str {
-        &self.ty
-    }
-
-    /// The title of the change.
-    pub fn title(&self) -> &str {
+    /// The short description of the change.
+    pub fn description(&self) -> &str {
         self.conventional.description()
     }
 
@@ -554,5 +370,23 @@ impl Change {
     /// The regular Git reference.
     pub fn id(&self) -> &str {
         &self.commit.id
+    }
+}
+
+impl Serialize for Change {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut commit = HashMap::new();
+        commit.insert("id", self.id());
+        commit.insert("short_id", self.short_id());
+
+        let mut state = serializer.serialize_struct("Change", 4)?;
+        state.serialize_field("type", &self.type_())?;
+        state.serialize_field("description", &self.description())?;
+        state.serialize_field("body", &self.body())?;
+        state.serialize_field("commit", &commit)?;
+        state.end()
     }
 }

@@ -166,17 +166,26 @@ messages of annotated tags are used to add hand-written release notes to the
 release. Similar to conventional commits, the first line of the tag annotation
 is used as the release title, the rest as the release notes.
 
-**_work in progress_** ~~Any commits _after_ the latest tagged release are added
-to the "unreleased" section. You can optionally run
-`jilu --release MAJOR.MINOR.PATCH` if you want to generate a change log with the
-unreleased commits grouped in a new release. When doing this, your `$EDITOR`
-will open to provide release notes. This will also create a Git tag with the
-same details (unless you supply `--no-tag`).~~
+Any commits _after_ the latest tagged release are added to the "unreleased"
+section.
+
+**_work in progress_** ~~If a tag annotation contains a line starting with
+`YANKED:`, it will be marked as such in the change log, with anything following
+that marker being used as the reason for yanking the release. Git tag
+annotations [can be replaced after pushing them][] (while retaining the tag date
+and author), with some command-line-fu.~~
+
+~~You can optionally run `jilu --release MAJOR.MINOR.PATCH` if you want to
+generate a change log with the unreleased commits grouped in a new release. When
+doing this, your `$EDITOR` will open to provide release notes. This will also
+create a Git tag with the same details (unless you supply `--no-tag`).~~
 
 ~~The release feature is added to make sure the updated change log is part of
 that new release. Otherwise, opening the change log in the repository state at
 the point of a release tag would still show the new changes in the _unreleased_
 section.~~
+
+[can be edited after pushing them]: https://stackoverflow.com/a/29019547/747032
 
 #### Readable
 

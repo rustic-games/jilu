@@ -119,40 +119,32 @@ impl ChangeSet {
         accept_types: &Option<Vec<String>>,
         tag: Option<&Tag>,
     ) -> Result<(), Error> {
-        let changes = match tag {
-            None => commits
-                .drain(0..)
+        let idx = match tag {
+            None => Some(commits.len() - 1),
+            Some(tag) => commits
+                .iter()
+                .enumerate()
+                .skip_while(|(_, c)| c.id != tag.commit.id)
+                .map(|(idx, _)| idx)
+                .next(),
+        };
+
+        let changes = match idx {
+            None => return Ok(()),
+            Some(idx) => commits
+                .drain(0..=idx)
                 .filter_map(|commit| match Change::new(commit) {
                     Err(Error::InvalidCommitType) => None,
                     Err(err) => Some(Err(err)),
                     Ok(change) => Some(Ok(change)),
                 })
                 .collect::<Result<Vec<_>, _>>()?,
-            Some(tag) => {
-                let mut changes = vec![];
-                let mut target = Some(&tag.commit);
-
-                while let Some(commit) = target {
-                    if let Some(idx) = commits.iter().position(|c| c.id == commit.id) {
-                        let commit = commits.remove(idx);
-
-                        match Change::new(commit) {
-                            Err(Error::InvalidCommitType) => {}
-                            Err(err) => return Err(err),
-                            Ok(change) => changes.push(change),
-                        };
-                    };
-
-                    target = commit.parent.as_ref().map(AsRef::as_ref)
-                }
-
-                changes
-            }
         };
 
         self.changes.append(
             &mut changes
                 .into_iter()
+                .rev()
                 .filter(|c| {
                     if let Some(types) = accept_types {
                         types.iter().any(|f| f == c.type_())

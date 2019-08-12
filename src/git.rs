@@ -15,7 +15,6 @@ pub struct Commit {
     pub time: DateTime<Utc>,
     pub author: Signature,
     pub committer: Signature,
-    pub parent: Option<Box<Self>>,
 }
 
 /// A tag owning all the relevant data to be used in Jilu.
@@ -153,14 +152,6 @@ impl TryFrom<git2::Commit<'_>> for Commit {
             author: commit.author().try_into()?,
             committer: commit.committer().try_into()?,
             time: Utc.timestamp(commit.time().seconds(), 0),
-
-            // FIXME: we only use the first parent, which won't always work.
-            parent: commit
-                .parents()
-                .next()
-                .map(TryInto::try_into)
-                .transpose()?
-                .map(Box::new),
         })
     }
 }

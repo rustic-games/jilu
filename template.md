@@ -21,7 +21,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 {% if unreleased -%}
 {%- for change in unreleased.changes -%}
-- {{ change.description }} ([`{{ change.commit.short_id }}`])
+- {{ change.type }}: {{ change.description }} ([`{{ change.commit.short_id }}`])
 {% endfor %}
 {% else -%}
 _nothing new to show for… yet!_

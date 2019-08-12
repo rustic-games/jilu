@@ -46,10 +46,10 @@ What matters most is the success of your project, with or without the help of
 
 2. Install `jilu`:
 
-   - ~~Using [release binaries]~~ _(soon)_:
+   - Using [release binaries]:
 
      ```shell
-     curl …
+     curl -L https://github.com/rustic-games/jilu/releases/download/v0.1.0/jilu_0.1.0_$(uname)_x86_64.tar.gz | tar -xvf - jilu
      ```
 
    - ~~Using [Homebrew]~~ _(soon)_:

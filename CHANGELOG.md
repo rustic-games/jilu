@@ -12,12 +12,50 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.1.1`](#011) – _2019.08.12_
 - [`0.1.0`](#010) – _2019.08.12_
 
 ## _[Unreleased]_
 
-- fix: prevent subtraction with overflow ([`2e383d1`])
-- fix: correctly check for no new changes ([`61ceeed`])
+_nothing new to show for… yet!_
+
+## [0.1.1] – _The Quick Fix_
+
+_2019.08.12_
+
+_What goes up, must come down._
+
+This release fixes several issues that came to light after releasing
+`v0.1.0`, which put the repository in a state with no unreleased
+changes, triggering branching logic that still had a few bugs 🐛.
+
+Those bugs are no more.
+
+Still, this is a perfect reminder to start working on [those unit
+tests].
+
+[those unit tests]: https://github.com/rustic-games/jilu/issues/4
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<jean@mertz.fm>)
+
+### Changes
+
+#### Bug Fixes
+
+- **prevent subtraction with overflow** ([`2e383d1`])
+
+  Return early if there are no commits to take from the stack.
+
+- **correctly check for no new changes** ([`61ceeed`])
+
+  Since `unreleased` is an object, it never reports back as being _falsy_,
+  so we instead check for an empty list of changes in the object.
 
 ## [0.1.0] – _Ship It!_
 
@@ -134,7 +172,8 @@ greatly appreciated by the community. 💖
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/rustic-games/jilu/releases/tag/v0.1.1
 [0.1.0]: https://github.com/rustic-games/jilu/releases/tag/v0.1.0
 
 <!-- [commits] -->

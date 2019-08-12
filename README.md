@@ -196,10 +196,11 @@ human-readable change log by including the following information:
 - [x] custom change log introduction paragraph
 - [x] table of contents
 - [x] unreleased changes at the top
-- [x] release versions and dates
-- [x] release changes grouped by type
+- [x] release versions, titles and dates
+- [x] release changes grouped by type (features, fixes, etc.)
 - [x] manually written release notes
 - [x] short git refs linking specific commits
+- [x] optional thank-you's to contributors
 - [x] optional GitHub linking to release/tag/compare views
 
 #### Forgiving

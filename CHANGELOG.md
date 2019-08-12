@@ -11,13 +11,14 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## Overview
 
-- [_unreleased_](#unreleased)
+- [unreleased](#unreleased)
 
 ## _[Unreleased]_
 
-- **initial working version** ([`c62baf6`])
-- **initial project description** ([`1a6efca`])
-- **improve application documentation** ([`f25257b`])
+- feat: show commit type of unreleased changes ([`10a3e99`])
+- fix: chronologically order release changes ([`fa7f5a5`])
+- feat: configurable change log template and config ([`d462839`])
+- feat: initial working version ([`c62baf6`])
 
 <!-- [releases] -->
 
@@ -25,6 +26,14 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 <!-- [commits] -->
 
+[`10a3e99`]: https://github.com/rustic-games/jilu/commit/10a3e9986f72281cdab675e3a94d3d80d62a10e3
+[`fa7f5a5`]: https://github.com/rustic-games/jilu/commit/fa7f5a5853b579f179b30f70132bef6f151ed5a1
+[`d462839`]: https://github.com/rustic-games/jilu/commit/d4628395305f87908d0ffcce13a657de4f88135c
 [`c62baf6`]: https://github.com/rustic-games/jilu/commit/c62baf6627a3e0bb6d9c99ba93b9021caf083d6e
-[`1a6efca`]: https://github.com/rustic-games/jilu/commit/1a6efca422acb2f81121e0ea1c015010e4486b95
-[`f25257b`]: https://github.com/rustic-games/jilu/commit/f25257b231db7bab0524f8c58bc7edc8012d16ad
+
+<!--
+Config(
+  github: ( repo: "rustic-games/jilu" ),
+  accept_types: ["feat", "fix", "perf"],
+)
+-->

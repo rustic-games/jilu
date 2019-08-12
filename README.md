@@ -267,7 +267,7 @@ no template is defined, the [default template][tpl] is used instead.
 
 [this project's change log]: https://raw.githubusercontent.com/rustic-games/jilu/master/CHANGELOG.md
 [tera]: https://tera.netlify.com/
-[tpl]: ./template.md
+[tpl]: https://raw.githubusercontent.com/rustic-games/jilu/master/template.md
 [conventional commits]: https://www.conventionalcommits.org/en/v1.0.0-beta.4/
 [semver]: https://semver.org/
 [keep a changelog]: https://keepachangelog.com/en/1.0.0/

@@ -12,13 +12,13 @@
   <br />
 
   <p><sub>
-    <em>convert <a href="https://www.conventionalcommits.org">conventional commits</a> into an auto-generated change log</em>
+    <em>convert <a href="https://www.conventionalcommits.org">conventional commits</a> into a <strong>human readable</strong> change log</em>
     <br />––––––––––<br />
-    <em>use Git tags to annotate your releases with titles, release notes and more</em>
+    <em>use Git tags to <strong>annotate your releases</strong> with titles, release notes and more</em>
     <br />–––––<br />
-    <em>tweak your change log to suit the needs of your community</em>
+    <em><strong>tweak your change log</strong> to suit the needs of your community</em>
     <br />––––––––––<br />
-    <em>single binary <code>jilu</code>, ready to be integrated into your CI workflow</em>
+    <em>integrate the <code>jilu</code> binary into your CI workflow for <strong>automated updates</strong></em>
   </sub></p>
 
   <br />
@@ -29,16 +29,16 @@
 The way you structure and document your projects is personal, and transforms
 over time into what works best for you and your community. **Jilu** tries to
 deliver a nice and simple way to expose your project changes to the outside
-world. It is a flexible way, but it can never replace all possible workflows,
-and it doesn't pretend to.
+world. It's flexible, but it can never replace all possible workflows, and it
+doesn't pretend to.
 
 Using **Jilu** requires using [conventional commits], and while some like the
 rigor of structured commits, others don't, both have valid reasons. If you have
 an existing workflow that works for you, or an existing project without
 conventional commits, there won't be much to gain for you here.
 
-Use whatever suits your needs, and focus on shipping and making your project
-users happy.
+What matters most is the success of your project, with or without the help of
+**Jilu**.
 
 ### Quick Start
 

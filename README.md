@@ -265,7 +265,7 @@ configuration file to your Git repository root.
 The templating system uses the [Tera] library to provide Django-like syntax. If
 no template is defined, the [default template][tpl] is used instead.
 
-[this project's change log]: ./CHANGELOG.md
+[this project's change log]: https://raw.githubusercontent.com/rustic-games/jilu/master/CHANGELOG.md
 [tera]: https://tera.netlify.com/
 [tpl]: ./template.md
 [conventional commits]: https://www.conventionalcommits.org/en/v1.0.0-beta.4/

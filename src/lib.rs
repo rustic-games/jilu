@@ -124,7 +124,7 @@ impl ChangeSet {
         }
 
         let idx = match tag {
-            None => Some(commits.len() - 1),
+            None => Some(commits.len().checked_sub(1).unwrap_or_default()),
             Some(tag) => commits
                 .iter()
                 .enumerate()

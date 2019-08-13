@@ -9,30 +9,30 @@ use std::convert::{TryFrom, TryInto};
 /// A commit owning all the relevant data to be used in Jilu.
 #[derive(Debug)]
 pub struct Commit {
-    pub id: String,
-    pub short_id: String,
-    pub message: String,
-    pub time: DateTime<Utc>,
-    pub author: Signature,
-    pub committer: Signature,
+    pub(crate) id: String,
+    pub(crate) short_id: String,
+    pub(crate) message: String,
+    pub(crate) time: DateTime<Utc>,
+    pub(crate) author: Signature,
+    pub(crate) committer: Signature,
 }
 
 /// A tag owning all the relevant data to be used in Jilu.
 #[derive(Debug)]
 pub struct Tag {
-    pub id: String,
-    pub message: String,
-    pub name: String,
-    pub tagger: Option<Signature>,
-    pub commit: Commit,
+    pub(crate) id: String,
+    pub(crate) message: String,
+    pub(crate) name: String,
+    pub(crate) tagger: Option<Signature>,
+    pub(crate) commit: Commit,
 }
 
 /// A signature owning all the relevant data to be used in Jilu.
 #[derive(Debug)]
 pub struct Signature {
-    pub email: String,
-    pub name: String,
-    pub time: DateTime<Utc>,
+    pub(crate) email: String,
+    pub(crate) name: String,
+    pub(crate) time: DateTime<Utc>,
 }
 
 /// Fetch all Git commits to be presented in the change log.

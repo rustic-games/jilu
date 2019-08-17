@@ -6,12 +6,12 @@ use serde::Serialize;
 
 /// A set of changes belonging together.
 #[derive(Debug, Default)]
-pub(crate) struct ChangeSet {
+pub(crate) struct ChangeSet<'a> {
     /// Internal reference to the changes in this change set.
-    changes: Vec<Change>,
+    changes: Vec<Change<'a>>,
 }
 
-impl ChangeSet {
+impl<'a> ChangeSet<'a> {
     /// Given a set of Git commits, take all commits belonging to this change
     /// set.
     ///
@@ -47,12 +47,13 @@ impl ChangeSet {
     /// If any of the Git operations fail, an error is returned.
     pub(crate) fn take_commits(
         &mut self,
-        commits: &mut Vec<Commit>,
+        mut offset: usize,
+        commits: &'a [Commit],
         accept_types: &Option<Vec<String>>,
         tag: Option<&Tag>,
-    ) -> Result<(), Error> {
+    ) -> Result<usize, Error> {
         if commits.is_empty() {
-            return Ok(());
+            return Ok(offset);
         }
 
         let idx = match tag {
@@ -60,22 +61,27 @@ impl ChangeSet {
             Some(tag) => commits
                 .iter()
                 .enumerate()
+                .skip(offset)
                 .skip_while(|(_, c)| c.id != tag.commit.id)
                 .map(|(idx, _)| idx)
                 .next(),
         };
 
         let changes = match idx {
-            None => return Ok(()),
+            None => return Ok(offset),
             Some(idx) => commits
-                .drain(0..=idx)
-                .filter_map(|commit| match Change::new(commit) {
+                .iter()
+                .skip(offset)
+                .take(idx)
+                .filter_map(|commit| match Change::new(&commit) {
                     Err(Error::InvalidCommitType) => None,
                     Err(err) => Some(Err(err)),
                     Ok(change) => Some(Ok(change)),
                 })
                 .collect::<Result<Vec<_>, _>>()?,
         };
+
+        offset += idx.unwrap_or_default();
 
         self.changes.append(
             &mut changes
@@ -91,7 +97,7 @@ impl ChangeSet {
                 .collect(),
         );
 
-        Ok(())
+        Ok(offset)
     }
 
     /// Return the list of changes in this change set.
@@ -115,7 +121,7 @@ impl ChangeSet {
     }
 }
 
-impl Serialize for ChangeSet {
+impl Serialize for ChangeSet<'_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

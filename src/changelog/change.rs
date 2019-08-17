@@ -1,22 +1,21 @@
 use crate::changelog::Contributor;
 use crate::git::Commit;
 use crate::Error;
-use conventional_commit::ConventionalCommit;
+use conventional::{Commit as CCommit, Simple as _};
 use serde::ser::{SerializeStruct, Serializer};
 use serde::Serialize;
 use std::collections::HashMap;
-use std::str::FromStr;
 
 /// A single change in the change log.
 #[derive(Debug)]
-pub(crate) struct Change {
-    commit: Commit,
-    conventional: ConventionalCommit,
+pub(crate) struct Change<'a> {
+    commit: &'a Commit,
+    conventional: CCommit<'a>,
 }
 
-impl Change {
-    pub(crate) fn new(commit: Commit) -> Result<Self, Error> {
-        let conventional = ConventionalCommit::from_str(&commit.message)?;
+impl<'a> Change<'a> {
+    pub(crate) fn new(commit: &'a Commit) -> Result<Self, Error> {
+        let conventional = CCommit::new(&commit.message)?;
 
         Ok(Self {
             commit,
@@ -62,7 +61,7 @@ impl Change {
     }
 }
 
-impl Serialize for Change {
+impl Serialize for Change<'_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

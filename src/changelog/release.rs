@@ -7,7 +7,7 @@ use serde::ser::{SerializeStruct, Serializer};
 use serde::Serialize;
 
 #[derive(Debug)]
-pub(crate) struct Release {
+pub(crate) struct Release<'a> {
     /// The version of the release.
     version: Version,
 
@@ -15,10 +15,10 @@ pub(crate) struct Release {
     tag: Tag,
 
     /// Internal reference to the change set of this release.
-    changeset: ChangeSet,
+    changeset: ChangeSet<'a>,
 }
 
-impl Serialize for Release {
+impl Serialize for Release<'_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -33,7 +33,7 @@ impl Serialize for Release {
     }
 }
 
-impl Release {
+impl<'a> Release<'a> {
     pub(crate) fn new(tag: Tag) -> Result<Self, Error> {
         let version = Version::parse(&tag.name[1..])?;
 
@@ -45,7 +45,7 @@ impl Release {
     }
 
     /// Add a set of changes to the release.
-    pub(crate) fn with_changeset(&mut self, changeset: ChangeSet) {
+    pub(crate) fn with_changeset(&mut self, changeset: ChangeSet<'a>) {
         self.changeset = changeset;
     }
 

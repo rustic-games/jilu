@@ -13,14 +13,16 @@ use crate::{Config, Error};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-pub struct Changelog {
+pub struct Changelog<'a> {
     config: Config,
-    unreleased: ChangeSet,
-    releases: Vec<Release>,
+    unreleased: ChangeSet<'a>,
+    releases: Vec<Release<'a>>,
 }
 
-impl Changelog {
-    pub fn new(config: Config, mut commits: Vec<Commit>, tags: Vec<Tag>) -> Result<Self, Error> {
+impl<'a> Changelog<'a> {
+    pub fn new(config: Config, commits: &'a [Commit], tags: Vec<Tag>) -> Result<Self, Error> {
+        let mut offset = 0;
+
         let mut releases = tags
             .into_iter()
             .map(Release::new)
@@ -28,14 +30,19 @@ impl Changelog {
 
         for release in &mut releases {
             let mut changeset = ChangeSet::default();
-            changeset.take_commits(&mut commits, &config.accept_types, Some(release.tag()))?;
+            offset = changeset.take_commits(
+                offset,
+                &commits,
+                &config.accept_types,
+                Some(release.tag()),
+            )?;
             release.with_changeset(changeset);
         }
 
         releases.reverse();
 
         let mut unreleased = ChangeSet::default();
-        unreleased.take_commits(&mut commits, &config.accept_types, None)?;
+        unreleased.take_commits(offset, &commits, &config.accept_types, None)?;
 
         Ok(Self {
             config,

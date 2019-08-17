@@ -8,7 +8,7 @@ pub enum Error {
     Config(ron::de::Error),
 
     /// The commit does not adhere to the conventional spec.
-    ConventionalCommit(conventional_commit::Error),
+    ConventionalCommit(conventional::Error),
 
     /// A formatting error.
     Format(fmt::Error),
@@ -119,8 +119,8 @@ impl From<fmt::Error> for Error {
     }
 }
 
-impl From<conventional_commit::Error> for Error {
-    fn from(err: conventional_commit::Error) -> Self {
+impl From<conventional::Error> for Error {
+    fn from(err: conventional::Error) -> Self {
         Error::ConventionalCommit(err)
     }
 }

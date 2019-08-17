@@ -116,7 +116,8 @@ impl<'a> ChangeSet<'a> {
             .filter(|c| !ignore.unwrap_or(&[]).iter().any(|email| email == &c.email))
             .collect();
 
-        contributors.sort_unstable_by(|a, b| a.name.cmp(&b.name));
+        contributors.sort();
+        contributors.dedup();
         contributors
     }
 }

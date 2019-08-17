@@ -148,7 +148,11 @@ impl TryFrom<git2::Commit<'_>> for Commit {
                 .as_str()
                 .ok_or(Error::Utf8Error)?
                 .to_owned(),
-            message: commit.message().ok_or(Error::Utf8Error)?.to_owned(),
+            message: commit
+                .message()
+                .ok_or(Error::Utf8Error)?
+                .trim_end()
+                .to_owned(),
             author: commit.author().try_into()?,
             committer: commit.committer().try_into()?,
             time: Utc.timestamp(commit.time().seconds(), 0),

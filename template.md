@@ -40,11 +40,8 @@ _{{ release.date | date(format="%Y.%m.%d") }}_
 This release is made possible by the following people (in alphabetical order).
 Thank you all for your contributions. Your work – no matter how significant – is
 greatly appreciated by the community. 💖
-
-{% for contributor in release.changeset.contributors -%}
-
+{% for contributor in release.changeset.contributors %}
 - {{ contributor.name }} (<{{ contributor.email }}>)
-
 {%- endfor %}
 {%- endif %}
 

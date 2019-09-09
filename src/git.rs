@@ -4,6 +4,7 @@ use chrono::{
     DateTime,
 };
 use git2::{ObjectType, Repository, Sort};
+use semver::Version;
 use std::convert::{TryFrom, TryInto};
 
 /// A commit owning all the relevant data to be used in Jilu.
@@ -21,7 +22,7 @@ pub struct Commit {
 #[derive(Debug)]
 pub struct Tag {
     pub(crate) id: String,
-    pub(crate) message: String,
+    pub(crate) message: Option<String>,
     pub(crate) name: String,
     pub(crate) tagger: Option<Signature>,
     pub(crate) commit: Commit,
@@ -101,8 +102,21 @@ pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
             string.ok_or((None, Error::Utf8Error)).and_then(|name| {
                 repo.revparse_single(name)
                     .map_err(Into::into)
-                    .and_then(|object| object.into_tag().map_err(|_| Error::InvalidTag))
-                    .and_then(TryInto::try_into)
+                    .and_then(|object| {
+                        match object.kind() {
+                            // annotated tag
+                            Some(ObjectType::Tag) => object
+                                .into_tag()
+                                .map_err(|_| Error::InvalidTag)
+                                .and_then(TryInto::try_into),
+                            // lightweight tag
+                            Some(ObjectType::Commit) => object
+                                .into_commit()
+                                .map_err(|_| Error::InvalidTag)
+                                .and_then(|c| (name, c).try_into()),
+                            _ => unreachable!(),
+                        }
+                    })
                     .map_err(|err| (Some(name), err))
             })
         })
@@ -123,14 +137,16 @@ pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
                 _ => Some(Err(err)),
             },
             Ok(tag) => {
+                let version = if tag.name.starts_with('v') {
+                    &tag.name[1..]
+                } else {
+                    &tag.name
+                };
+
                 // Ignore any non "version" tags.
                 //
                 // TODO: logging
-                if tag.name.starts_with('v') {
-                    Some(Ok(tag))
-                } else {
-                    None
-                }
+                Version::parse(version).ok().map(|_| Ok(tag))
             }
         })
         .collect()
@@ -170,7 +186,7 @@ impl TryFrom<git2::Tag<'_>> for Tag {
 
         Ok(Self {
             id: tag.id().to_string(),
-            message: tag.message().ok_or(Error::Utf8Error)?.to_owned(),
+            message: tag.message().map(str::to_owned),
             name: tag.name().ok_or(Error::Utf8Error)?.to_owned(),
             tagger: tag.tagger().map(TryInto::try_into).transpose()?,
             commit: tag
@@ -193,3 +209,17 @@ impl TryFrom<git2::Signature<'_>> for Signature {
         })
     }
 }
+impl TryFrom<(&str, git2::Commit<'_>)> for Tag {
+    type Error = Error;
+
+    fn try_from((name, commit): (&str, git2::Commit<'_>)) -> Result<Self, Error> {
+        Ok(Self {
+            id: commit.id().to_string(),
+            message: None,
+            name: name.to_owned(),
+            tagger: Some(commit.author().try_into()?),
+            commit: commit.try_into()?,
+        })
+    }
+}
+

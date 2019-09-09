@@ -28,11 +28,12 @@ _nothing new to show for… yet!_
 
 {% endif -%}
 {%- for release in releases -%}
-## [{{ release.version }}] – _{{ release.title }}_
+## [{{ release.version }}]{% if release.title %} – _{{ release.title }}_{% endif %}
 
 _{{ release.date | date(format="%Y.%m.%d") }}_
-
+{%- if release.notes %}
 {{ release.notes }}
+{% endif -%}
 {%- if release.changeset.contributors %}
 
 ### Contributions

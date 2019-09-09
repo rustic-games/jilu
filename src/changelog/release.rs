@@ -35,7 +35,13 @@ impl Serialize for Release<'_> {
 
 impl<'a> Release<'a> {
     pub(crate) fn new(tag: Tag) -> Result<Self, Error> {
-        let version = Version::parse(&tag.name[1..])?;
+        let version = if tag.name.starts_with('v') {
+            &tag.name[1..]
+        } else {
+            &tag.name
+        };
+
+        let version = Version::parse(version)?;
 
         Ok(Self {
             version,
@@ -61,7 +67,7 @@ impl<'a> Release<'a> {
     /// If a lightweight tag was used to tag the release, it will have no
     /// title.
     pub(crate) fn title(&self) -> Option<&str> {
-        self.tag.message.lines().next()
+        self.tag.message.as_ref().and_then(|m| m.lines().next())
     }
 
     /// The release notes.
@@ -72,11 +78,12 @@ impl<'a> Release<'a> {
     /// If a lightweight tag was used to tag the release, it will have no
     /// notes.
     pub(crate) fn notes(&self) -> Option<&str> {
-        let msg = &self.tag.message;
-        let begin = msg.find('\n').unwrap_or(0);
-        let end = msg.find("-----BEGIN").unwrap_or_else(|| msg.len()) - 1;
+        self.tag.message.as_ref().and_then(|msg| {
+            let begin = msg.find('\n').unwrap_or(0);
+            let end = msg.find("-----BEGIN").unwrap_or_else(|| msg.len()) - 1;
 
-        msg.get(begin..=end).map(str::trim)
+            msg.get(begin..=end).map(str::trim)
+        })
     }
 
     /// The release date.

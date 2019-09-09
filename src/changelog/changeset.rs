@@ -73,12 +73,8 @@ impl<'a> ChangeSet<'a> {
                 .iter()
                 .skip(offset)
                 .take(idx)
-                .filter_map(|commit| match Change::new(&commit) {
-                    Err(Error::InvalidCommitType) => None,
-                    Err(err) => Some(Err(err)),
-                    Ok(change) => Some(Ok(change)),
-                })
-                .collect::<Result<Vec<_>, _>>()?,
+                .filter_map(|commit| Change::new(&commit).ok())
+                .collect::<Vec<_>>(),
         };
 
         offset += idx.unwrap_or_default();

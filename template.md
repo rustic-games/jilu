@@ -32,6 +32,7 @@ _nothing new to show for… yet!_
 
 _{{ release.date | date(format="%Y.%m.%d") }}_
 {%- if release.notes %}
+
 {{ release.notes }}
 {% endif -%}
 {%- if release.changeset.contributors %}

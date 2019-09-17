@@ -12,12 +12,121 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.2.0`](#020) – _2019.09.17_
 - [`0.1.1`](#011) – _2019.08.12_
 - [`0.1.0`](#010) – _2019.08.12_
 
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+## [0.2.0] – _Final release with required release title_
+
+_2019.09.17_
+
+_Because coming up with a release title for every new release is hard,
+so the next release will have a way to not have a release title, but
+still have release notes._
+
+On to the release itself.
+
+This is mostly a release full of fixes as reported by @mmstick, @Calmynt
+and @kondanta. Thank you all!
+
+Aside from a slew of bug fixes, the biggest new feature is support for
+tags starting with a `v`, so both `0.1.0` and `v0.2.0` tags are now
+recognised as release tags.
+
+Enjoy!
+
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<jean@mertz.fm>)
+
+### Changes
+
+#### Bug Fixes
+
+- **assign commits to correct release** ([`b101f8c`])
+
+  The algorithm to determine if a commit belongs to a specific release is
+  incorrectly assigning commits to the wrong releases for any release
+  except the first one.
+
+  It iterates over all commits with an enumerator attached, then skip any
+  commits belonging to previous releases, then skipping the commits
+  belonging to the current release, and finally uses the new enumerator
+  value as the count for the number of commits belonging to the release.
+
+  This is incorrect, as the enumerator shouldn't start counting until
+  after skipping the commits not belonging to the current release.
+
+  This is fixed by simplifying the iterator logic to count the relevant
+  commits.
+
+- **add newline between release date and notes** ([`e7e88b7`])
+
+- **ignore non-conventional commits** ([`ceabf81`])
+
+  The documentation states that non-conventional commits are ignored in
+  the final release notes, but this was not actually the case. It is now.
+
+  The "other" commits are ignored by Jilu and won't show up in the change
+  log.
+
+- **remove extra whitespace at end of commit** ([`7ffd865`])
+
+  The git2 library adds a newline at the end of commit messages, even if
+  the message is a single line. This makes sense when printing it to the
+  screen, but not for our parser.
+
+  Our parser either accepts a single line commit:
+
+      feat: my commit message
+
+  Or a multi-line commit with a blank line between the subject and the
+  body:
+
+      feat: my commit message
+
+      with a commit body!
+
+  In the first case, git2 adds a newline after the subject, which falls
+  between the first and second case, and is thus considered invalid.
+
+  The solution is to always trim any extra whitespace at the end of the
+  commit message.
+
+- **split contributors per line** ([`3948e9c`])
+
+  The default template didn't add a newline after each contributor,
+  breaking the rendered markdown.
+
+- **deduplicate list of contributors** ([`adbabcf`])
+
+#### Features
+
+- **better tag support** ([`6b79f87`])
+
+  Tags can now start with or without a leading `v` (e.g. v0.1.0).
+
+  Also, tags can now be both lightweight or annotated, whereas before
+  non-annotated tags returned an error.
+
+  When using non-annotated tags, a release won't have a title or a custom
+  release description.
+
+- **update to new conventional commit parser** ([`9ca8143`])
+
+  The new parser uses the [Nom] library for improved accuracy and zero
+  allocations with fewer dependencies.
+
+  [nom]: https://docs.rs/nom
 
 ## [0.1.1] – _The Quick Fix_
 
@@ -35,6 +144,7 @@ Still, this is a perfect reminder to start working on [those unit
 tests].
 
 [those unit tests]: https://github.com/rustic-games/jilu/issues/4
+
 
 ### Contributions
 
@@ -102,6 +212,7 @@ Be sure to check out the project [README] if you haven't already!
 [conventional commits]: https://www.conventionalcommits.org/en/v1.0.0-beta.4/
 [annotated git tag]: https://git-scm.com/book/en/v2/Git-Basics-Tagging
 [readme]: https://github.com/rustic-games/jilu/blob/master/README.md#%E8%AE%B0%E5%BD%95
+
 
 ### Contributions
 
@@ -172,12 +283,21 @@ greatly appreciated by the community. 💖
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.1.1...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/rustic-games/jilu/releases/tag/v0.2.0
 [0.1.1]: https://github.com/rustic-games/jilu/releases/tag/v0.1.1
 [0.1.0]: https://github.com/rustic-games/jilu/releases/tag/v0.1.0
 
 <!-- [commits] -->
 
+[`b101f8c`]: https://github.com/rustic-games/jilu/commit/b101f8caa52890b8776a13f5381696e7be2912be
+[`e7e88b7`]: https://github.com/rustic-games/jilu/commit/e7e88b708d3c6e55fbd3b528cf2b22a431c6f47f
+[`ceabf81`]: https://github.com/rustic-games/jilu/commit/ceabf81b2ebe24c9fea4f5d0ff95cf83e823c535
+[`6b79f87`]: https://github.com/rustic-games/jilu/commit/6b79f8725ed99db07c5199428d8b70cf35bc9eb2
+[`7ffd865`]: https://github.com/rustic-games/jilu/commit/7ffd8652fc633ba847f12c341cd4b8ddadea8660
+[`3948e9c`]: https://github.com/rustic-games/jilu/commit/3948e9c096c9467f53315ab08bdfc86355d9b90b
+[`adbabcf`]: https://github.com/rustic-games/jilu/commit/adbabcf6c75aedc58e10cdc60a1a9c80bedf4b1a
+[`9ca8143`]: https://github.com/rustic-games/jilu/commit/9ca814329bf79e709fa10be5e76c944af0c02703
 [`2e383d1`]: https://github.com/rustic-games/jilu/commit/2e383d181fe2a6634ed2bbb5292d6ec7d278533c
 [`61ceeed`]: https://github.com/rustic-games/jilu/commit/61ceeed9d0fe6334a06e0c3334391ee339af8614
 [`10a3e99`]: https://github.com/rustic-games/jilu/commit/10a3e9986f72281cdab675e3a94d3d80d62a10e3

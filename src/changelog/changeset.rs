@@ -57,27 +57,25 @@ impl<'a> ChangeSet<'a> {
         }
 
         let idx = match tag {
-            None => Some(commits.len().checked_sub(1).unwrap_or_default()),
-            Some(tag) => commits
-                .iter()
-                .enumerate()
-                .skip(offset)
-                .skip_while(|(_, c)| c.id != tag.commit.id)
-                .map(|(idx, _)| idx)
-                .next(),
+            None => commits.iter().skip(offset).count(),
+            Some(tag) => {
+                commits
+                    .iter()
+                    .skip(offset)
+                    .take_while(|c| c.id != tag.commit.id)
+                    .count()
+                    + 1
+            }
         };
 
-        let changes = match idx {
-            None => return Ok(offset),
-            Some(idx) => commits
-                .iter()
-                .skip(offset)
-                .take(idx)
-                .filter_map(|commit| Change::new(&commit).ok())
-                .collect::<Vec<_>>(),
-        };
+        let changes = commits
+            .iter()
+            .skip(offset)
+            .take(idx)
+            .filter_map(|commit| Change::new(&commit).ok())
+            .collect::<Vec<_>>();
 
-        offset += idx.unwrap_or_default();
+        offset += idx;
 
         self.changes.append(
             &mut changes

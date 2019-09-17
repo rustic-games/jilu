@@ -14,9 +14,9 @@
   <p><sub>
     <em>convert <a href="https://www.conventionalcommits.org">conventional commits</a> into a <strong>human readable</strong> change log</em>
     <br />––––––––––<br />
-    <em>use Git tags to <strong>annotate your releases</strong> with titles, release notes and more</em>
+    <em>use Git tags to <strong>annotate your releases</strong> with release titles and richly formatted release notes</em>
     <br />–––––<br />
-    <em><strong>tweak your change log</strong> to suit the needs of your community</em>
+    <em><strong>customize your change log template</strong> to best serve your community</em>
     <br />––––––––––<br />
     <em>integrate the <code>jilu</code> binary into your CI workflow for <strong>automated updates</strong></em>
   </sub></p>

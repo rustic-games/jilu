@@ -24,6 +24,7 @@ pub struct Tag {
     pub(crate) id: String,
     pub(crate) message: Option<String>,
     pub(crate) name: String,
+    pub(crate) version: Version,
     pub(crate) tagger: Option<Signature>,
     pub(crate) commit: Commit,
 }
@@ -96,7 +97,8 @@ pub fn commits(repo: &Repository) -> Result<Vec<Commit>, Error> {
 ///
 /// Any unexpected error is still bubbled up to the callee.
 pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
-    repo.tag_names(None)?
+    let mut tags: Vec<Tag> = repo
+        .tag_names(None)?
         .into_iter()
         .map(|string| {
             string.ok_or((None, Error::Utf8Error)).and_then(|name| {
@@ -123,7 +125,7 @@ pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
         .filter_map(|result: Result<Tag, _>| match result {
             Err((name, err)) => match err {
                 // Any badly formatted tag is skipped.
-                Error::Utf8Error => {
+                Error::Utf8Error | Error::SemVer(_) => {
                     // TODO: debug logging
                     eprintln!(
                         "[debug] ignoring bad tag {}: {}",
@@ -132,24 +134,17 @@ pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
                     );
                     None
                 }
+
                 // All non-defined errors above are considered to be breaking
                 // and are bubbled up to the callee.
                 _ => Some(Err(err)),
             },
-            Ok(tag) => {
-                let version = if tag.name.starts_with('v') {
-                    &tag.name[1..]
-                } else {
-                    &tag.name
-                };
-
-                // Ignore any non "version" tags.
-                //
-                // TODO: logging
-                Version::parse(version).ok().map(|_| Ok(tag))
-            }
+            Ok(tag) => Some(Ok(tag)),
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()?;
+
+    tags.sort_by(|a, b| a.version.cmp(&b.version));
+    Ok(tags)
 }
 
 impl TryFrom<git2::Commit<'_>> for Commit {
@@ -184,10 +179,18 @@ impl TryFrom<git2::Tag<'_>> for Tag {
             return Err(Error::InvalidTag);
         }
 
+        let name = tag.name().ok_or(Error::Utf8Error)?.to_owned();
+        let version = Version::parse(if name.starts_with('v') {
+            &name[1..]
+        } else {
+            &name
+        })?;
+
         Ok(Self {
             id: tag.id().to_string(),
             message: tag.message().map(str::to_owned),
-            name: tag.name().ok_or(Error::Utf8Error)?.to_owned(),
+            name,
+            version,
             tagger: tag.tagger().map(TryInto::try_into).transpose()?,
             commit: tag
                 .target()?
@@ -213,10 +216,17 @@ impl TryFrom<(&str, git2::Commit<'_>)> for Tag {
     type Error = Error;
 
     fn try_from((name, commit): (&str, git2::Commit<'_>)) -> Result<Self, Error> {
+        let version = Version::parse(if name.starts_with('v') {
+            &name[1..]
+        } else {
+            &name
+        })?;
+
         Ok(Self {
             id: commit.id().to_string(),
             message: None,
             name: name.to_owned(),
+            version,
             tagger: Some(commit.author().try_into()?),
             commit: commit.try_into()?,
         })

@@ -50,8 +50,8 @@ pub struct Signature {
 pub fn commits(repo: &Repository) -> Result<Vec<Commit>, Error> {
     let mut walk = repo.revwalk()?;
     walk.push_head()?;
-    walk.simplify_first_parent();
-    walk.set_sorting(Sort::REVERSE | Sort::TOPOLOGICAL);
+    walk.simplify_first_parent()?;
+    walk.set_sorting(Sort::REVERSE | Sort::TOPOLOGICAL)?;
 
     // walk the tree of commits, keeping track of the object ID throughout the
     // process to be able to point towards any commits causing an error.
@@ -222,4 +222,3 @@ impl TryFrom<(&str, git2::Commit<'_>)> for Tag {
         })
     }
 }
-

@@ -67,7 +67,7 @@ impl<'a> Changelog<'a> {
         tera.register_filter("indent", render::indent);
         tera.register_filter("typeheader", type_header);
 
-        let mut log = tera.render("template", context)?;
+        let mut log = tera.render("template", &context)?;
         if let Some(metadata) = &self.config.metadata {
             log.push_str(&format!("\n{}\n", metadata));
         }

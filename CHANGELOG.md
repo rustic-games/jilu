@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.3.0`](#030) – _2020.03.14_
 - [`0.2.0`](#020) – _2019.09.17_
 - [`0.1.1`](#011) – _2019.08.12_
 - [`0.1.0`](#010) – _2019.08.12_
@@ -19,6 +20,46 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+## [0.3.0] – _More templating functionality_
+
+_2020.03.14_
+
+The [Tera][0] dependency was upgraded from `1.0.0-beta.15` to `1.1.0`,
+which brings with it a [list of new features][1] to use in the changelog
+template.
+
+Additionally, a bug causing git tags to be incorrectly sorted got
+squashed.
+
+[0]: https://tera.netlify.com/
+[1]: https://github.com/Keats/tera/blob/1a0ce70af178a5cb519a231cc6afeab947f1728e/CHANGELOG.md
+
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<git@jeanmertz.com>)
+
+### Changes
+
+#### Bug Fixes
+
+- **sort list of git tags** ([`a4bbbdc`])
+
+#### Features
+
+- **update Tera dependency to v1.1.0 stable** ([`f2c9f38`])
+
+  This allows for more functionality to be used while templating the
+  CHANGELOG.
+
+  See the [Terra changelog][0] for more details.
+
+  [0]: https://github.com/Keats/tera/blob/1a0ce70af178a5cb519a231cc6afeab947f1728e/CHANGELOG.md
 
 ## [0.2.0] – _Final release with required release title_
 
@@ -283,13 +324,16 @@ greatly appreciated by the community. 💖
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/rustic-games/jilu/releases/tag/v0.3.0
 [0.2.0]: https://github.com/rustic-games/jilu/releases/tag/v0.2.0
 [0.1.1]: https://github.com/rustic-games/jilu/releases/tag/v0.1.1
 [0.1.0]: https://github.com/rustic-games/jilu/releases/tag/v0.1.0
 
 <!-- [commits] -->
 
+[`a4bbbdc`]: https://github.com/rustic-games/jilu/commit/a4bbbdc3a89923b815390f757b55c025e3f68d8d
+[`f2c9f38`]: https://github.com/rustic-games/jilu/commit/f2c9f386be0e98c908810bcfab5d08101760b467
 [`b101f8c`]: https://github.com/rustic-games/jilu/commit/b101f8caa52890b8776a13f5381696e7be2912be
 [`e7e88b7`]: https://github.com/rustic-games/jilu/commit/e7e88b708d3c6e55fbd3b528cf2b22a431c6f47f
 [`ceabf81`]: https://github.com/rustic-games/jilu/commit/ceabf81b2ebe24c9fea4f5d0ff95cf83e823c535

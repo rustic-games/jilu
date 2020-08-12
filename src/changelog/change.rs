@@ -28,6 +28,11 @@ impl<'a> Change<'a> {
         &self.conventional.type_()
     }
 
+    /// The scope of the change.
+    pub(crate) fn scope(&self) -> Option<&str> {
+        self.conventional.scope()
+    }
+
     /// The short description of the change.
     pub(crate) fn description(&self) -> &str {
         self.conventional.description()
@@ -72,6 +77,7 @@ impl Serialize for Change<'_> {
 
         let mut state = serializer.serialize_struct("Change", 4)?;
         state.serialize_field("type", &self.type_())?;
+        state.serialize_field("scope", &self.scope())?;
         state.serialize_field("description", &self.description())?;
         state.serialize_field("body", &self.body())?;
         state.serialize_field("commit", &commit)?;

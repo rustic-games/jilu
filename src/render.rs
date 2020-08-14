@@ -11,6 +11,16 @@ impl Filter for TypeHeader {
     }
 }
 
+pub(crate) struct ScopeHeader(pub(crate) HashMap<String, String>);
+
+impl Filter for ScopeHeader {
+    fn filter(&self, value: &Value, _args: &HashMap<String, Value>) -> Result<Value> {
+        let ty = try_get_value!("scopeheader", "value", String, value);
+
+        to_value(self.0.get(&ty).unwrap_or(&ty)).map_err(Into::into)
+    }
+}
+
 pub(crate) fn indent(value: &Value, args: &HashMap<String, Value>) -> Result<Value> {
     let s = try_get_value!("indent", "value", String, value);
     let n = match args.get("n") {

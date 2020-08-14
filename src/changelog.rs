@@ -62,10 +62,12 @@ impl<'a> Changelog<'a> {
             .unwrap_or(include_str!("../template.md"));
 
         let type_header = render::TypeHeader(self.config.type_headers.clone());
+        let scope_header = render::ScopeHeader(self.config.scope_headers.clone());
 
         tera.add_raw_template("template", template)?;
         tera.register_filter("indent", render::indent);
         tera.register_filter("typeheader", type_header);
+        tera.register_filter("scopeheader", scope_header);
 
         let mut log = tera.render("template", &context)?;
         if let Some(metadata) = &self.config.metadata {

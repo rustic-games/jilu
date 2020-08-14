@@ -11,6 +11,7 @@ pub struct Config {
     pub github: Option<Github>,
     pub accept_types: Option<Vec<String>>,
     pub type_headers: HashMap<String, String>,
+    pub scope_headers: HashMap<String, String>,
 
     #[serde(skip)]
     pub template: Option<String>,
@@ -39,6 +40,7 @@ impl Default for Config {
             github: None,
             accept_types: None,
             type_headers,
+            scope_headers: HashMap::new(),
             template: None,
             metadata: None,
         }

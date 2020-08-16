@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.4.0`](#040) – _2020.08.16_
 - [`0.3.0`](#030) – _2020.03.14_
 - [`0.2.0`](#020) – _2019.09.17_
 - [`0.1.1`](#011) – _2019.08.12_
@@ -20,6 +21,53 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+## [0.4.0] – _Commit scope templating_
+
+_2020.08.16_
+
+You can use the `scope` template function to print the scope of a
+commit.
+
+A `typeheader` filter exists to use custom scope names. Use the
+`scope_headers` config flag as such:
+
+```markdown
+<!--
+Config(
+  scope_headers: {
+      "ui": "User Interface",
+  }
+)
+-->
+```
+
+This feature is similar to the already existing `type` function.
+
+See the [default template file](./template.md) for an example of the
+`type` feature, which should give you an idea on how to use `scope` and
+its configurables.
+
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jan Christian Grünhage (<jan.christian@gruenhage.xyz>)
+
+### Changes
+
+#### Features
+
+- **provide scopeheader filter** ([`99695ca`])
+
+  This filter is analogous to the typeheader filter, it maps from a scope
+  to a scope name suitable for changelog headers, with the map
+  configurable from the config section.
+
+- **expose commit scope during templating** ([`65bab03`])
 
 ## [0.3.0] – _More templating functionality_
 
@@ -324,7 +372,8 @@ greatly appreciated by the community. 💖
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/rustic-games/jilu/releases/tag/v0.4.0
 [0.3.0]: https://github.com/rustic-games/jilu/releases/tag/v0.3.0
 [0.2.0]: https://github.com/rustic-games/jilu/releases/tag/v0.2.0
 [0.1.1]: https://github.com/rustic-games/jilu/releases/tag/v0.1.1
@@ -332,6 +381,8 @@ greatly appreciated by the community. 💖
 
 <!-- [commits] -->
 
+[`99695ca`]: https://github.com/rustic-games/jilu/commit/99695ca60eb4b99000b66933876cf8f5c78a3f90
+[`65bab03`]: https://github.com/rustic-games/jilu/commit/65bab038934c5051572fa2a963caa53432b478f3
 [`a4bbbdc`]: https://github.com/rustic-games/jilu/commit/a4bbbdc3a89923b815390f757b55c025e3f68d8d
 [`f2c9f38`]: https://github.com/rustic-games/jilu/commit/f2c9f386be0e98c908810bcfab5d08101760b467
 [`b101f8c`]: https://github.com/rustic-games/jilu/commit/b101f8caa52890b8776a13f5381696e7be2912be

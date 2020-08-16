@@ -241,6 +241,9 @@ Config(
     "feat": "Features",
     "fix": "Bug Fixes",
     "perf": "Performance Improvements"
+  },
+  scope_headers: {
+    "ui": "User Interface",
   }
 )
 

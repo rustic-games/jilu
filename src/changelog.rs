@@ -71,7 +71,7 @@ impl<'a> Changelog<'a> {
 
         let mut log = tera.render("template", &context)?;
         if let Some(metadata) = &self.config.metadata {
-            log.push_str(&format!("\n{}\n", metadata));
+            log.push_str(&format!("\n\n{}\n", metadata));
         }
 
         Ok(log)

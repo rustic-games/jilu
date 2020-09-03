@@ -67,11 +67,30 @@ impl Config {
         };
 
         let mut metadata = vec![];
-        for line in text.lines().rev().skip_while(|l| !l.contains("-->")) {
-            metadata.push(line);
-
-            if line.contains("<!--") {
-                break;
+        let mut found_config_end = false;
+        let mut open_tags = 0;
+        for line in text.lines().rev() {
+            match (line.contains("<!--"), line.contains("-->"), found_config_end) {
+                (_, true, false) => {
+                    metadata.push(line);
+                    found_config_end = true;
+                    open_tags = 1;
+                },
+                (true, true, true) => metadata.push(line),
+                (_, true, true) => {
+                    open_tags += 1;
+                    metadata.push(line);
+                }
+                (true, _, true) => {
+                    open_tags -= 1;
+                    metadata.push(line);
+                    if open_tags == 0 {
+                        break;
+                    };
+                }
+                (false, false, true) => metadata.push(line),
+                (false, false, false) => break,
+                (true, false, false) => return Err(Error::Generic("Found opening HTML comment tag after first closing tag".to_string())),
             }
         }
 

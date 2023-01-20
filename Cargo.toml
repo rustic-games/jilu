@@ -15,7 +15,7 @@ Inflector = { version = "0.11", default-features = false }
 boolinator = "2"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 conventional = "0.5"
-git2 = { version = "0.13", default-features = false }
+git2 = { version = "0.16", default-features = false }
 lazy_static = "1"
 ron = "0.5"
 semver = { version = "0.9", features = ["serde"] }

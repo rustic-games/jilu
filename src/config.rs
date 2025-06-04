@@ -1,9 +1,11 @@
-use crate::Error;
+use crate::{git, Error};
 use boolinator::Boolinator;
+use git2::Repository;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::io;
+use url::Url;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(default)]
@@ -53,8 +55,23 @@ pub struct Github {
 }
 
 impl Config {
-    pub fn from_environment() -> Result<Self, Error> {
-        Ok(Self::from_file("CHANGELOG.md")?.unwrap_or_default())
+    pub fn from_environment(repo: &Repository) -> Result<Self, Error> {
+        Ok(Self::from_file("CHANGELOG.md")?.unwrap_or_else(|| Self {
+            github: git::origin_url(repo)
+                .ok()
+                .and_then(|url| {
+                    Url::parse(&url).ok().map(|u| {
+                        u.path()
+                            .strip_suffix(".git")
+                            .unwrap_or(u.path())
+                            .strip_prefix("/")
+                            .unwrap_or(u.path())
+                            .to_owned()
+                    })
+                })
+                .map(|repo| Github { repo }),
+            ..Default::default()
+        }))
     }
 
     fn from_file(name: &str) -> Result<Option<Self>, Error> {

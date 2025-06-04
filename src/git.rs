@@ -147,6 +147,11 @@ pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
     Ok(tags)
 }
 
+pub fn origin_url(repo: &Repository) -> Result<String, Error> {
+    let remote = repo.find_remote("origin")?;
+    Ok(remote.url().ok_or(Error::Utf8Error)?.to_owned())
+}
+
 impl TryFrom<git2::Commit<'_>> for Commit {
     type Error = Error;
 

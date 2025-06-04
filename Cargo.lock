@@ -501,6 +501,7 @@ dependencies = [
  "semver",
  "serde",
  "tera",
+ "url",
 ]
 
 [[package]]

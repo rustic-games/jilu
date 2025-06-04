@@ -10,31 +10,31 @@ use std::convert::{TryFrom, TryInto};
 /// A commit owning all the relevant data to be used in Jilu.
 #[derive(Debug)]
 pub struct Commit {
-    pub(crate) id: String,
-    pub(crate) short_id: String,
-    pub(crate) message: String,
-    pub(crate) time: DateTime<Utc>,
-    pub(crate) author: Signature,
-    pub(crate) committer: Signature,
+    pub id: String,
+    pub short_id: String,
+    pub message: String,
+    pub time: DateTime<Utc>,
+    pub author: Signature,
+    pub committer: Signature,
 }
 
 /// A tag owning all the relevant data to be used in Jilu.
 #[derive(Debug)]
 pub struct Tag {
-    pub(crate) id: String,
-    pub(crate) message: Option<String>,
-    pub(crate) name: String,
-    pub(crate) version: Version,
-    pub(crate) tagger: Option<Signature>,
-    pub(crate) commit: Commit,
+    pub id: String,
+    pub message: Option<String>,
+    pub name: String,
+    pub version: Version,
+    pub tagger: Option<Signature>,
+    pub commit: Commit,
 }
 
 /// A signature owning all the relevant data to be used in Jilu.
 #[derive(Debug)]
 pub struct Signature {
-    pub(crate) email: String,
-    pub(crate) name: String,
-    pub(crate) time: DateTime<Utc>,
+    pub email: String,
+    pub name: String,
+    pub time: DateTime<Utc>,
 }
 
 /// Fetch all Git commits to be presented in the change log.
@@ -166,7 +166,10 @@ impl TryFrom<git2::Commit<'_>> for Commit {
                 .to_owned(),
             author: commit.author().try_into()?,
             committer: commit.committer().try_into()?,
-            time: Utc.timestamp(commit.time().seconds(), 0),
+            time: Utc
+                .timestamp_opt(commit.time().seconds(), 0)
+                .single()
+                .ok_or("Invalid timestamp")?,
         })
     }
 }
@@ -180,11 +183,7 @@ impl TryFrom<git2::Tag<'_>> for Tag {
         }
 
         let name = tag.name().ok_or(Error::Utf8Error)?.to_owned();
-        let version = Version::parse(if name.starts_with('v') {
-            &name[1..]
-        } else {
-            &name
-        })?;
+        let version = Version::parse(name.strip_prefix('v').unwrap_or(&name))?;
 
         Ok(Self {
             id: tag.id().to_string(),
@@ -208,7 +207,10 @@ impl TryFrom<git2::Signature<'_>> for Signature {
         Ok(Self {
             email: signature.email().ok_or(Error::Utf8Error)?.to_owned(),
             name: signature.name().ok_or(Error::Utf8Error)?.to_owned(),
-            time: Utc.timestamp(signature.when().seconds(), 0),
+            time: Utc
+                .timestamp_opt(signature.when().seconds(), 0)
+                .single()
+                .ok_or("Invalid timestamp")?,
         })
     }
 }
@@ -216,11 +218,7 @@ impl TryFrom<(&str, git2::Commit<'_>)> for Tag {
     type Error = Error;
 
     fn try_from((name, commit): (&str, git2::Commit<'_>)) -> Result<Self, Error> {
-        let version = Version::parse(if name.starts_with('v') {
-            &name[1..]
-        } else {
-            &name
-        })?;
+        let version = Version::parse(name.strip_prefix('v').unwrap_or(name))?;
 
         Ok(Self {
             id: commit.id().to_string(),

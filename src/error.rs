@@ -1,4 +1,3 @@
-use semver::SemVerError;
 use std::{error, fmt};
 
 /// All possible library errors.
@@ -32,7 +31,7 @@ pub enum Error {
     MissingCommitMessage,
 
     /// A SemVer related error.
-    SemVer(SemVerError),
+    SemVer(semver::Error),
 
     /// A templating error.
     Template(tera::Error),
@@ -95,8 +94,8 @@ impl From<String> for Error {
     }
 }
 
-impl From<SemVerError> for Error {
-    fn from(err: SemVerError) -> Self {
+impl From<semver::Error> for Error {
+    fn from(err: semver::Error) -> Self {
         Error::SemVer(err)
     }
 }

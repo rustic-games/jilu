@@ -72,7 +72,7 @@ impl<'a> ChangeSet<'a> {
             .iter()
             .skip(offset)
             .take(idx)
-            .filter_map(|commit| Change::new(&commit).ok())
+            .filter_map(|commit| Change::new(commit).ok())
             .collect::<Vec<_>>();
 
         offset += idx;

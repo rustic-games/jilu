@@ -37,5 +37,5 @@ pub(crate) fn indent(value: &Value, args: &HashMap<String, Value>) -> Result<Val
         }
     }
 
-    Ok(to_value(&out.join("\n"))?)
+    Ok(to_value(out.join("\n"))?)
 }

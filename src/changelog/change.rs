@@ -25,7 +25,7 @@ impl<'a> Change<'a> {
 
     /// The type of the change.
     pub(crate) fn type_(&self) -> &str {
-        &self.conventional.type_()
+        self.conventional.type_()
     }
 
     /// The scope of the change.

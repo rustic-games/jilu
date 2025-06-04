@@ -32,7 +32,7 @@ impl<'a> Changelog<'a> {
             let mut changeset = ChangeSet::default();
             offset = changeset.take_commits(
                 offset,
-                &commits,
+                commits,
                 &config.accept_types,
                 Some(release.tag()),
             )?;
@@ -42,7 +42,7 @@ impl<'a> Changelog<'a> {
         releases.reverse();
 
         let mut unreleased = ChangeSet::default();
-        unreleased.take_commits(offset, &commits, &config.accept_types, None)?;
+        unreleased.take_commits(offset, commits, &config.accept_types, None)?;
 
         Ok(Self {
             config,
@@ -57,8 +57,7 @@ impl<'a> Changelog<'a> {
         let template = self
             .config
             .template
-            .as_ref()
-            .map(String::as_str)
+            .as_deref()
             .unwrap_or(include_str!("../template.md"));
 
         let type_header = render::TypeHeader(self.config.type_headers.clone());

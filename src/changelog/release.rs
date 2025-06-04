@@ -80,7 +80,7 @@ impl<'a> Release<'a> {
     pub(crate) fn notes(&self) -> Option<&str> {
         self.tag.message.as_ref().and_then(|msg| {
             let begin = msg.find('\n').unwrap_or(0);
-            let end = msg.find("-----BEGIN").unwrap_or_else(|| msg.len()) - 1;
+            let end = msg.find("-----BEGIN").unwrap_or(msg.len()) - 1;
 
             msg.get(begin..=end).map(str::trim)
         })

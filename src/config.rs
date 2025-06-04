@@ -122,8 +122,8 @@ impl Config {
 
         let config = config.join("\n");
 
-        Ok(if config.contains(&"Config") {
-            let mut config: Config = ron::de::from_str(&config)?;
+        Ok(if config.contains("Config") {
+            let mut config: Config = ron::de::from_str(&config).map_err(ron::Error::from)?;
             config.template = (!template.is_empty()).as_some(template.join("\n"));
             config.metadata = (!metadata.is_empty()).as_some(metadata.join("\n"));
             Some(config)

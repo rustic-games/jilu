@@ -56,7 +56,9 @@ pub struct Github {
 
 impl Config {
     pub fn from_environment(repo: &Repository) -> Result<Self, Error> {
-        Ok(Self::from_file("CHANGELOG.md")?.unwrap_or_else(|| Self {
+        let name = std::env::var("CHANGELOG").unwrap_or_else(|_| "CHANGELOG.md".to_owned());
+
+        Ok(Self::from_file(&name)?.unwrap_or_else(|| Self {
             github: git::origin_url(repo)
                 .ok()
                 .and_then(|url| {

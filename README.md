@@ -201,7 +201,7 @@ human-readable change log by including the following information:
 - [x] manually written release notes
 - [x] short git refs linking specific commits
 - [x] optional thank-you's to contributors
-- [x] optional GitHub linking to release/tag/compare views
+- [x] optional GitHub linking to release/tag/compare/pull pages
 
 #### Forgiving
 
@@ -224,6 +224,7 @@ You can:
 - [x] set header names for grouped changes (features, fixes, etc.)
 - [x] ignore specific commit types
 - [x] fully customize the change log template
+- [x] customize the change log file name
 
 You can check out the bottom of [this project's change log] for its
 configuration, and [the default template][tpl] to see how the templating system
@@ -267,6 +268,13 @@ configuration file to your Git repository root.
 
 The templating system uses the [Tera] library to provide Django-like syntax. If
 no template is defined, the [default template][tpl] is used instead.
+
+If your project uses a different file name for the change log, you can specify
+it using the `CHANGELOG` environment variable:
+
+```sh
+CHANGELOG=CHANGELOG.txt jilu
+```
 
 [this project's change log]: https://raw.githubusercontent.com/rustic-games/jilu/master/CHANGELOG.md
 [tera]: https://tera.netlify.com/

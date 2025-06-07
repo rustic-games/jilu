@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 - [unreleased](#unreleased)
 
 {%- for release in releases %}
-- [`{{ release.version }}`](#{{ release.version | replace(from=".", to="") }}) – _{{ release.date | date(format="%Y.%m.%d")}}_
+- [`{{ release.version }}`](#{{ release.version }}) – _{{ release.date | date(format="%Y.%m.%d")}}_
 {%- endfor %}
 
 ## _[Unreleased]_
@@ -32,6 +32,7 @@ _nothing new to show for… yet!_
 
 {% endif -%}
 {%- for release in releases -%}
+<a id="{{ release.version }}" />
 ## [{{ release.version }}]{% if release.title %} – _{{ release.title }}_{% endif %}
 
 _{{ release.date | date(format="%Y.%m.%d") }}_

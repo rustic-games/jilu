@@ -7,21 +7,98 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 [keep a changelog]: https://keepachangelog.com/en/1.0.0/
 [semantic versioning]: https://semver.org/spec/v2.0.0.html
-[conventional commits]: https://www.conventionalcommits.org/en/v1.0.0-beta.4/
+[conventional commits]: https://www.conventionalcommits.org/en/v1.0.0/
 
 ## Overview
 
 - [unreleased](#unreleased)
-- [`0.4.0`](#040) – _2020.08.16_
-- [`0.3.0`](#030) – _2020.03.14_
-- [`0.2.0`](#020) – _2019.09.17_
-- [`0.1.1`](#011) – _2019.08.12_
-- [`0.1.0`](#010) – _2019.08.12_
+- [`0.5.0`](#0.5.0) – _2025.06.07_
+- [`0.4.0`](#0.4.0) – _2020.08.16_
+- [`0.3.0`](#0.3.0) – _2020.03.14_
+- [`0.2.0`](#0.2.0) – _2019.09.17_
+- [`0.1.1`](#0.1.1) – _2019.08.12_
+- [`0.1.0`](#0.1.0) – _2019.08.12_
 
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
 
+<a id="0.5.0" />
+## [0.5.0] – _Winter has passed_
+
+_2025.06.07_
+
+After a long hiatus, the project is back to life.
+
+This release brings a couple of quality of life improvements such as
+support for custom change log file names, out-of-the-box remote URL
+links, and Github merge commit formatting.
+
+While the future is uncertain, I do expect to continue to work on this
+project for at least a while, as I have a couple of other projects that
+use, or will use Jilu, and with that will likely come the need for a few
+more features.
+
+Enjoy!
+
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<git@jeanmertz.com>)
+
+### Changes
+
+#### Bug Fixes
+
+- **Github-independent anchor links for releases** ([`6cc1f0f`])
+
+  Before this commit, we relied on Github's automatic anchor links to
+  allow clicking on releases in the "overview" section of the change log.
+
+  Even on Github however, those links were broken for titled releases, as
+  the anchor links would include the sanitized title of the release.
+
+  This commit addresses both issues; the anchor links are now Github-
+  independent, and the anchor links now work for titled and untitled
+  releases.
+
+#### Features
+
+- **Support custom change log file via `CHANGELOG` env var** ([`11ae252`])
+
+  Users can now specify a different file name for their change log by
+  setting the `CHANGELOG` environment variable, providing flexibility for
+  projects that use change log file names like `CHANGELOG.txt` or
+  `HISTORY.md`.
+
+- **Automatic PR linking for GitHub merge commits** ([`b598d90`])
+
+  Jilu now automatically detects GitHub merge commit descriptions and
+  extracts pull request numbers to generate clickable PR links in the
+  changelog. When a commit description follows the pattern "<description>
+  (#123)", the changelog will now linkify the `#123` part of the
+  description.
+
+  If the description does not match the described pattern, the old
+  behavior is preserved: the description is rendered as-is, and no PR link
+  is generated.
+
+- **try to get default remote origin url** ([`a318e04`])
+
+  With this commit, we try to get the default remote origin URL from Git's
+  `origin` remote.
+
+  If found, we use it to set the `github.repo` field in the configuration.
+
+  This ensures a more useful default usage of the tool, as it will
+  generate correct links when running `jilu` without any custom
+  configuration in a repository with a remote named `origin`.
+
+<a id="0.4.0" />
 ## [0.4.0] – _Commit scope templating_
 
 _2020.08.16_
@@ -69,6 +146,7 @@ greatly appreciated by the community. 💖
 
 - **expose commit scope during templating** ([`65bab03`])
 
+<a id="0.3.0" />
 ## [0.3.0] – _More templating functionality_
 
 _2020.03.14_
@@ -109,6 +187,7 @@ greatly appreciated by the community. 💖
 
   [0]: https://github.com/Keats/tera/blob/1a0ce70af178a5cb519a231cc6afeab947f1728e/CHANGELOG.md
 
+<a id="0.2.0" />
 ## [0.2.0] – _Final release with required release title_
 
 _2019.09.17_
@@ -217,6 +296,7 @@ greatly appreciated by the community. 💖
 
   [nom]: https://docs.rs/nom
 
+<a id="0.1.1" />
 ## [0.1.1] – _The Quick Fix_
 
 _2019.08.12_
@@ -256,6 +336,7 @@ greatly appreciated by the community. 💖
   Since `unreleased` is an object, it never reports back as being _falsy_,
   so we instead check for an empty list of changes in the object.
 
+<a id="0.1.0" />
 ## [0.1.0] – _Ship It!_
 
 _2019.08.12_
@@ -372,7 +453,8 @@ greatly appreciated by the community. 💖
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/rustic-games/jilu/releases/tag/v0.5.0
 [0.4.0]: https://github.com/rustic-games/jilu/releases/tag/v0.4.0
 [0.3.0]: https://github.com/rustic-games/jilu/releases/tag/v0.3.0
 [0.2.0]: https://github.com/rustic-games/jilu/releases/tag/v0.2.0
@@ -381,6 +463,10 @@ greatly appreciated by the community. 💖
 
 <!-- [commits] -->
 
+[`6cc1f0f`]: https://github.com/rustic-games/jilu/commit/6cc1f0fb49d81d3f78fe2500c91448800eab73d2
+[`11ae252`]: https://github.com/rustic-games/jilu/commit/11ae252eabdd6b853b912ecad21feaac06639ebc
+[`b598d90`]: https://github.com/rustic-games/jilu/commit/b598d906bff3805b77a3a4aea0ee4b6cb331c62b
+[`a318e04`]: https://github.com/rustic-games/jilu/commit/a318e04133de8526f21553ff9c507f1d1bfa81bd
 [`99695ca`]: https://github.com/rustic-games/jilu/commit/99695ca60eb4b99000b66933876cf8f5c78a3f90
 [`65bab03`]: https://github.com/rustic-games/jilu/commit/65bab038934c5051572fa2a963caa53432b478f3
 [`a4bbbdc`]: https://github.com/rustic-games/jilu/commit/a4bbbdc3a89923b815390f757b55c025e3f68d8d
@@ -399,6 +485,9 @@ greatly appreciated by the community. 💖
 [`fa7f5a5`]: https://github.com/rustic-games/jilu/commit/fa7f5a5853b579f179b30f70132bef6f151ed5a1
 [`d462839`]: https://github.com/rustic-games/jilu/commit/d4628395305f87908d0ffcce13a657de4f88135c
 [`c62baf6`]: https://github.com/rustic-games/jilu/commit/c62baf6627a3e0bb6d9c99ba93b9021caf083d6e
+
+<!-- [pull requests] -->
+
 
 <!--
 Config(

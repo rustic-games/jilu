@@ -21,7 +21,11 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 {% if unreleased.changes -%}
 {%- for change in unreleased.changes -%}
+{% if change.merge_commit_description -%}
+- {{ change.type }}: {{ change.merge_commit_description.description }} ([#{{change.merge_commit_description.pr_number }}][pr#{{ change.merge_commit_description.pr_number }}]) ([`{{ change.commit.short_id }}`])
+{%- else -%}
 - {{ change.type }}: {{ change.description }} ([`{{ change.commit.short_id }}`])
+{%- endif %}
 {% endfor %}
 {% else -%}
 _nothing new to show for… yet!_
@@ -90,3 +94,18 @@ greatly appreciated by the community. 💖
 [`{{ change.commit.short_id }}`]: {{ url }}/commit/{{ change.commit.id }}
 {%- endfor -%}
 {%- endfor %}
+
+<!-- [pull requests] -->
+
+{% for change in unreleased.changes %}
+{%- if change.merge_commit_description -%}
+[pr#{{ change.merge_commit_description.pr_number }}]: {{ url }}/pull/{{ change.merge_commit_description.pr_number }}
+{% endif -%}
+{%- endfor -%}
+{%- for release in releases %}
+{%- for change in release.changeset.changes %}
+{%- if change.merge_commit_description -%}
+[pr#{{ change.merge_commit_description.pr_number }}]: {{ url }}/pull/{{ change.merge_commit_description.pr_number }}
+{% endif -%}
+{%- endfor -%}
+{%- endfor -%}

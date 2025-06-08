@@ -86,11 +86,18 @@ impl Config {
         };
 
         let mut metadata = vec![];
+        let mut level = 0;
         for line in text.lines().rev().skip_while(|l| !l.contains("-->")) {
+            if line.contains("-->") {
+                level += 1;
+            }
             metadata.push(line);
 
             if line.contains("<!--") {
-                break;
+                if level == 1 {
+                    break;
+                }
+                level -= 1;
             }
         }
 

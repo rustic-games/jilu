@@ -21,7 +21,6 @@ pub struct Commit {
 /// A tag owning all the relevant data to be used in Jilu.
 #[derive(Debug)]
 pub struct Tag {
-    pub id: String,
     pub message: Option<String>,
     pub name: String,
     pub version: Version,
@@ -147,9 +146,30 @@ pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
     Ok(tags)
 }
 
+/// Get the URL of the remote `origin` repository, if any.
 pub fn origin_url(repo: &Repository) -> Result<String, Error> {
     let remote = repo.find_remote("origin")?;
     Ok(remote.url().ok_or(Error::Utf8Error)?.to_owned())
+}
+
+/// Return the default git editor to use.
+///
+/// see: <https://git-scm.com/docs/git-commit#_environment_and_configuration_variables>
+///
+/// We could use `git-var` for this, but `git2` does not expose this API, so
+/// we'd have to shell out, which might not always work.
+///
+/// See: <https://git-scm.com/docs/git-var>
+pub fn editor(repo: &Repository) -> String {
+    std::env::var("GIT_EDITOR")
+        .or_else(|_| {
+            repo.config()
+                .and_then(|mut c| c.snapshot())
+                .and_then(|c| c.get_string("core.editor"))
+        })
+        .or_else(|_| std::env::var("VISUAL"))
+        .or_else(|_| std::env::var("EDITOR"))
+        .unwrap_or_else(|_| "vi".to_owned())
 }
 
 impl TryFrom<git2::Commit<'_>> for Commit {
@@ -191,7 +211,6 @@ impl TryFrom<git2::Tag<'_>> for Tag {
         let version = Version::parse(name.strip_prefix('v').unwrap_or(&name))?;
 
         Ok(Self {
-            id: tag.id().to_string(),
             message: tag.message().map(str::to_owned),
             name,
             version,
@@ -219,6 +238,16 @@ impl TryFrom<git2::Signature<'_>> for Signature {
         })
     }
 }
+
+impl TryFrom<&Signature> for git2::Signature<'_> {
+    type Error = Error;
+
+    fn try_from(signature: &Signature) -> Result<Self, Self::Error> {
+        let time = git2::Time::new(signature.time.timestamp(), 0);
+        Ok(Self::new(&signature.name, &signature.email, &time)?)
+    }
+}
+
 impl TryFrom<(&str, git2::Commit<'_>)> for Tag {
     type Error = Error;
 
@@ -226,7 +255,6 @@ impl TryFrom<(&str, git2::Commit<'_>)> for Tag {
         let version = Version::parse(name.strip_prefix('v').unwrap_or(name))?;
 
         Ok(Self {
-            id: commit.id().to_string(),
             message: None,
             name: name.to_owned(),
             version,

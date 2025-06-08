@@ -40,14 +40,21 @@ _{{ release.date | date(format="%Y.%m.%d") }}_
 
 {{ release.notes }}
 {% endif -%}
-{%- if release.changeset.contributors %}
+{%- set ignored_contributors = get_env(name="IGNORE_CONTRIBUTORS", default="") | split(pat=",") -%}
+{%- set_global contributors = [] -%}
+{%- for contributor in release.changeset.contributors -%}
+  {%- if ignored_contributors is not containing(contributor.email) -%}
+    {%- set_global contributors = contributors | concat(with=contributor) -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if contributors %}
 
 ### Contributions
 
 This release is made possible by the following people (in alphabetical order).
 Thank you all for your contributions. Your work – no matter how significant – is
 greatly appreciated by the community. 💖
-{% for contributor in release.changeset.contributors %}
+{% for contributor in contributors %}
 - {{ contributor.name }} (<{{ contributor.email }}>)
 {%- endfor %}
 {%- endif %}

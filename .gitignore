@@ -1,1 +1,5 @@
-/target
+.goreleaser.yaml
+.intentionally-empty-file.o
+.jp/
+dist/
+target/

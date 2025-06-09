@@ -56,7 +56,7 @@ impl<'a> Release<'a> {
     }
 
     /// The SemVer version of the release.
-    pub(crate) fn version(&self) -> &Version {
+    pub fn version(&self) -> &Version {
         &self.version
     }
 

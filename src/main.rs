@@ -34,8 +34,8 @@ struct Opts {
     /// Edit the release notes in `$EDITOR`.
     edit_release_notes: bool,
 
-    /// Create a Git tag for the latest release.
-    tag_release: bool,
+    /// Commit the release to Git, including the tag.
+    commit_release: bool,
 }
 
 impl Opts {
@@ -47,7 +47,7 @@ impl Opts {
         let mut release = None;
         let mut release_notes = None;
         let mut edit_release_notes = false;
-        let mut tag_release = false;
+        let mut commit_release = false;
 
         let mut parser = lexopt::Parser::from_env();
         while let Some(arg) = parser.next()? {
@@ -64,8 +64,8 @@ impl Opts {
                 Short('e') | Long("edit") => {
                     edit_release_notes = true;
                 }
-                Short('t') | Long("tag") => {
-                    tag_release = true;
+                Short('c') | Long("commit") => {
+                    commit_release = true;
                 }
                 Short('h') | Long("help") => {
                     println!("Usage: jilu [-r|--release=VERSION] [-n|--notes=RELEASE_NOTES] [-e|--edit] [-w|--write] [CHANGELOG]");
@@ -86,7 +86,7 @@ impl Opts {
         let release = release.or_else(|| env::var("RELEASE").ok());
         let release_notes = release_notes.or_else(|| env::var("RELEASE_NOTES").ok());
         let edit_release_notes = edit_release_notes || env::var("RELEASE_EDIT").is_ok();
-        let tag_release = tag_release || env::var("RELEASE_TAG").is_ok();
+        let commit_release = commit_release || env::var("RELEASE_COMMIT").is_ok();
 
         Ok(Self {
             file,
@@ -94,7 +94,7 @@ impl Opts {
             release,
             release_notes,
             edit_release_notes,
-            tag_release,
+            commit_release,
         })
     }
 }
@@ -122,26 +122,34 @@ fn run() -> Result<String, Error> {
 
     let log = Changelog::new(&config, &commits, tags)?;
 
-    if opts.tag_release {
+    if opts.write {
+        std::fs::write(&opts.file, log.render()?)?;
+    }
+
+    if opts.commit_release {
         if !log.unreleased().changes().is_empty() {
             return Err(Error::Generic(
-                "Cannot tag with unreleased changes. Requires `--release`.".to_owned(),
+                "Cannot commit with unreleased changes. Requires `--release`.".to_owned(),
             ));
         }
 
         let Some(release) = log.releases().next() else {
-            return Err(Error::Generic("No releases to tag.".to_owned()));
+            return Err(Error::Generic("No releases to commit.".to_owned()));
         };
+
+        let commit_message = format!("chore: Release v{}", release.version());
+        Command::new("git").args(["add", &opts.file]).status()?;
+        Command::new("git")
+            .args(["commit", "-sm", &commit_message])
+            .status()?;
 
         release.tag().persist(&repo)?;
     }
 
-    let out = log.render()?;
     Ok(if opts.write {
-        std::fs::write(opts.file, out)?;
         String::new()
     } else {
-        out
+        log.render()?
     })
 }
 

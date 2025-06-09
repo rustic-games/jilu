@@ -7,7 +7,7 @@ use serde::ser::{SerializeStruct, Serializer};
 use serde::Serialize;
 
 #[derive(Debug)]
-pub(crate) struct Release<'a> {
+pub struct Release<'a> {
     /// The version of the release.
     version: Version,
 
@@ -108,7 +108,7 @@ impl<'a> Release<'a> {
     }
 
     /// The Git tag belonging to the release.
-    pub(crate) fn tag(&self) -> &Tag {
+    pub fn tag(&self) -> &Tag {
         &self.tag
     }
 

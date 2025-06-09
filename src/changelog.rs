@@ -51,6 +51,11 @@ impl<'a> Changelog<'a> {
         })
     }
 
+    /// Get the releases.
+    pub fn releases(&self) -> impl Iterator<Item = &Release<'a>> {
+        self.releases.iter()
+    }
+
     /// Get the unreleased changes.
     pub fn unreleased(&self) -> &ChangeSet<'a> {
         &self.unreleased

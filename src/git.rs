@@ -28,6 +28,27 @@ pub struct Tag {
     pub commit: Commit,
 }
 
+impl Tag {
+    /// Persist the tag to the Git repository's `HEAD` reference.
+    pub fn persist(&self, repo: &Repository) -> Result<(), Error> {
+        repo.tag(
+            &self.name,
+            repo.head()?.peel_to_commit()?.as_object(),
+            &self
+                .tagger
+                .as_ref()
+                .map(git2::Signature::try_from)
+                .transpose()?
+                .ok_or(Error::Generic("No tagger".to_owned()))
+                .or_else(|_| repo.signature())?,
+            self.message.as_deref().unwrap_or_default(),
+            false,
+        )?;
+
+        Ok(())
+    }
+}
+
 /// A signature owning all the relevant data to be used in Jilu.
 #[derive(Debug, Clone)]
 pub struct Signature {

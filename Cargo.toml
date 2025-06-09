@@ -28,6 +28,7 @@ semver = { version = "1", default-features = false, features = [
 serde = { version = "1", default-features = false, features = ["derive"] }
 url = { version = "2", default-features = false }
 tempfile = { version = "3", default-features = false }
+lexopt = { version = "0.3", default-features = false }
 tera = { version = "1.1.0", default-features = false, features = [
   "builtins",
   "preserve_order",

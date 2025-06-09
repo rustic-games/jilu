@@ -6,6 +6,9 @@ pub enum Error {
     /// Configuration error
     Config(ron::de::Error),
 
+    /// CLI error
+    Cli(lexopt::Error),
+
     /// The commit does not adhere to the conventional spec.
     ConventionalCommit(conventional::Error),
 
@@ -49,6 +52,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Config(ref err) => write!(f, "Configuration error: {}", err),
+            Cli(ref err) => write!(f, "CLI error: {}", err),
             ConventionalCommit(ref err) => write!(f, "Conventional Commit error: {}", err),
             Format(ref err) => write!(f, "Format error: {}", err),
             Generic(ref string) => write!(f, "Unknown error: {}", string),
@@ -69,6 +73,7 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Config(ref err) => Some(err),
+            Cli(ref err) => Some(err),
             ConventionalCommit(ref err) => Some(err),
             Format(ref err) => Some(err),
             Git(ref err) => Some(err),
@@ -139,5 +144,11 @@ impl From<ron::de::Error> for Error {
 impl From<tera::Error> for Error {
     fn from(err: tera::Error) -> Self {
         Error::Template(err)
+    }
+}
+
+impl From<lexopt::Error> for Error {
+    fn from(err: lexopt::Error) -> Self {
+        Error::Cli(err)
     }
 }

@@ -1,3 +1,10 @@
+run *ARGS:
+    #!/usr/bin/env sh
+    set -e
+
+    export IGNORE_CONTRIBUTORS="jean@mertz.fm,git@jeanmertz.com"
+    cargo run -- {{ARGS}}
+
 release VERSION:
     #!/usr/bin/env sh
     set -e

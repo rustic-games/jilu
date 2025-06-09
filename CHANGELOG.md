@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.7.0`](#0.7.0) – _2025.06.09_
 - [`0.6.0`](#0.6.0) – _2025.06.09_
 - [`0.5.0`](#0.5.0) – _2025.06.07_
 - [`0.4.0`](#0.4.0) – _2020.08.16_
@@ -23,6 +24,26 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+<a id="0.7.0" />
+## [0.7.0] – _Tag, you're it!_
+
+_2025.06.09_
+
+Tag your releases, plain and simple.
+
+
+### Changes
+
+#### Features
+
+- **Add `--tag` flag to create Git tags for releases** ([`95f91a0`])
+
+  This change introduces a new `--tag` (`-t`, `RELEASE_TAG`) option that
+  instructs Jilu to create Git tags for the latest release in the
+  changelog. When used, the tool validates that there are no unreleased
+  changes and creates a Git tag using the latest release's version and
+  metadata.
 
 <a id="0.6.0" />
 ## [0.6.0] – _The Goodies Release_
@@ -539,7 +560,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.6.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/rustic-games/jilu/releases/tag/v0.7.0
 [0.6.0]: https://github.com/rustic-games/jilu/releases/tag/v0.6.0
 [0.5.0]: https://github.com/rustic-games/jilu/releases/tag/v0.5.0
 [0.4.0]: https://github.com/rustic-games/jilu/releases/tag/v0.4.0
@@ -550,6 +572,7 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [commits] -->
 
+[`95f91a0`]: https://github.com/rustic-games/jilu/commit/95f91a0d63864a40e7a424a0940461a8c0b90da7
 [`a33ac8e`]: https://github.com/rustic-games/jilu/commit/a33ac8e9e846dea1904e62c268dd013a38f6d5a4
 [`56ce427`]: https://github.com/rustic-games/jilu/commit/56ce427cf82b4a0aba51a197ba49aca894217426
 [`1d15fe8`]: https://github.com/rustic-games/jilu/commit/1d15fe8e114561d88c46dfc528b95f6f39ab428c

@@ -1,6 +1,6 @@
 [package]
 name = "jilu"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Jean Mertz <helloworld@rustic.games>"]
 license = "MIT OR Apache-2.0"
 description = "Generate a change log based on conventional commits."

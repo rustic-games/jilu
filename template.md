@@ -33,6 +33,7 @@ _nothing new to show for… yet!_
 {% endif -%}
 {%- for release in releases -%}
 <a id="{{ release.version }}" />
+
 ## [{{ release.version }}]{% if release.title %} – _{{ release.title }}_{% endif %}
 
 _{{ release.date | date(format="%Y.%m.%d") }}_

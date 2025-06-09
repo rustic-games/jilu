@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 _nothing new to show for… yet!_
 
 <a id="0.8.0" />
+
 ## [0.8.0] – _Commit or don't, there is no such thing as a free lunch._
 
 _2025.06.09_
@@ -58,6 +59,7 @@ greatly appreciated by the community. 💖
   This makes the tool useful in a variety of release workflows.
 
 <a id="0.7.0" />
+
 ## [0.7.0] – _Tag, you're it!_
 
 _2025.06.09_
@@ -86,6 +88,7 @@ greatly appreciated by the community. 💖
   metadata.
 
 <a id="0.6.0" />
+
 ## [0.6.0] – _The Goodies Release_
 
 _2025.06.09_
@@ -219,6 +222,7 @@ greatly appreciated by the community. 💖
   parsed correctly.
 
 <a id="0.5.0" />
+
 ## [0.5.0] – _Winter has passed_
 
 _2025.06.07_
@@ -294,6 +298,7 @@ greatly appreciated by the community. 💖
   configuration in a repository with a remote named `origin`.
 
 <a id="0.4.0" />
+
 ## [0.4.0] – _Commit scope templating_
 
 _2020.08.16_
@@ -342,6 +347,7 @@ greatly appreciated by the community. 💖
 - **expose commit scope during templating** ([`65bab03`])
 
 <a id="0.3.0" />
+
 ## [0.3.0] – _More templating functionality_
 
 _2020.03.14_
@@ -383,6 +389,7 @@ greatly appreciated by the community. 💖
   [0]: https://github.com/Keats/tera/blob/1a0ce70af178a5cb519a231cc6afeab947f1728e/CHANGELOG.md
 
 <a id="0.2.0" />
+
 ## [0.2.0] – _Final release with required release title_
 
 _2019.09.17_
@@ -492,6 +499,7 @@ greatly appreciated by the community. 💖
   [nom]: https://docs.rs/nom
 
 <a id="0.1.1" />
+
 ## [0.1.1] – _The Quick Fix_
 
 _2019.08.12_
@@ -532,6 +540,7 @@ greatly appreciated by the community. 💖
   so we instead check for an empty list of changes in the object.
 
 <a id="0.1.0" />
+
 ## [0.1.0] – _Ship It!_
 
 _2019.08.12_

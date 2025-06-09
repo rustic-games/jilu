@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.6.0`](#0.6.0) – _2025.06.09_
 - [`0.5.0`](#0.5.0) – _2025.06.07_
 - [`0.4.0`](#0.4.0) – _2020.08.16_
 - [`0.3.0`](#0.3.0) – _2020.03.14_
@@ -22,6 +23,131 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+<a id="0.6.0" />
+## [0.6.0] – _The Goodies Release_
+
+_2025.06.09_
+
+A list of changes that make using Jilu a little easier.
+
+- Configure Jilu using CLI arguments (see `jilu --help`).
+- `sponge` no longer needed, let Jilu write the release notes to a file.
+- Group unreleased commits into a release before a tag is created.
+- Skip thanking specific contributors in the default template using
+  `IGNORE_CONTRIBUTORS`.
+- Support HTML comments in change log templates.
+
+
+### Changes
+
+#### Features
+
+- **allow configuring Jilu using CLI arguments** ([`a33ac8e`])
+
+  With this change, all existing environment variable-based configuration
+  can not be configured using CLI arguments.
+
+  The following arguments are available:
+
+  - `CHANGELOG` (`CHANGELOG`)
+    Path to the change log file. Defaults to `CHANGELOG.md`.
+
+  - `--write` (`-w`, `WRITE_CHANGELOG`)
+    Write to `CHANGELOG` file instead of printing it to `stdout`.
+
+  - `--release` (`-r`, `RELEASE`)
+    Version to use for the unreleased changes.
+
+  - `--notes` (`-n`, `RELEASE_NOTES`)
+    Release notes for the unreleased changes.
+
+  - `--edit` (`-e`, `RELEASE_EDIT`)
+    Edit the release notes in `$EDITOR`.
+
+  - `--help` (`-h`)
+    Print usage information.
+
+  All arguments are optional. If no arguments or environment variables are
+  set, Jilu uses `CHANGELOG.md` to read the inline configurations, if
+  available, and prints to stdout.
+
+  ```sh
+  jilu --help
+
+- **Optionally write change log to file** ([`56ce427`])
+
+  Previously, `jilu` would always write the change log to stdout, allowing
+  you to pipe it to a file if needed. This caused a few issues:
+
+  - You needed to use `sponge` to keep the inline configuration in the
+    relevant change log file.
+  - Opening `$EDITOR` does not work reliably when piping stdout.
+
+  With this change, those issues are resolved.
+
+  The previous workflow was:
+
+  ```sh
+  jilu | sponge CHANGELOG.md
+  ```
+
+  The new is:
+
+  ```sh
+  jilu --write CHANGELOG.md
+  ```
+
+  - You provide the change log file as the last argument to `jilu`.
+  - You (optionally) provide the `--write` flag to let `jilu` write the
+    changes to the file instead of printing them to stdout.
+
+  This removes the need for `sponge`, and allows the editor to be used
+  when `RELEASE_EDIT` is set.
+
+  You can still run `jilu` without any arguments, which reads
+  `CHANGELOG.md` for any custom configurations, if it exists, and prints
+  the result to stdout.
+
+- **Show unreleased changes in release notes editor** ([`1d15fe8`])
+
+  When creating a release with the `RELEASE` environment variable, if
+  `RELEASE_EDIT` is set, the unreleased commit messages are now displayed
+  in the release notes editor as comments. This provides immediate context
+  about what changes are being included in the release, making it more
+  convenient to write release notes without having to reference the git
+  log separately.
+
+- **Support grouping unreleased commits into release** ([`83192b5`])
+
+  Jilu can now generate changelogs with unreleased commits grouped into a
+  specified release version using the `RELEASE=<version>` environment
+  variables, despite a non-existing Git tag. Set `RELEASE_NOTES=<notes>`
+  to provide release notes, and `RELEASE_EDIT=true` to interactively edit
+  release notes using the configured Git editor.
+
+  This allows pre-generating the change log before tagging a new release.
+
+- **support ignoring contributors in default template** ([`8c71b99`])
+
+  The default change log template now supports filtering contributors
+  through the `IGNORE_CONTRIBUTORS` environment variable. Contributors
+  whose email addresses are listed in this comma-separated variable will
+  be excluded from the "Contributions" section of the release notes.
+
+  This allows maintainers to exclude automated or bot contributors
+  from public acknowledgments while still preserving their commit
+  history in the changeset.
+
+#### Bug Fixes
+
+- **Handle nested HTML comments in metadata parsing** ([`8b86c59`])
+
+  The metadata parsing logic was incorrectly breaking on the first `<!--`
+  encountered, causing issues when processing nested HTML comments.
+
+  With this fix, HTML comments inside template configurations are now
+  parsed correctly.
 
 <a id="0.5.0" />
 ## [0.5.0] – _Winter has passed_
@@ -41,14 +167,6 @@ more features.
 
 Enjoy!
 
-
-### Contributions
-
-This release is made possible by the following people (in alphabetical order).
-Thank you all for your contributions. Your work – no matter how significant – is
-greatly appreciated by the community. 💖
-
-- Jean Mertz (<git@jeanmertz.com>)
 
 ### Changes
 
@@ -162,14 +280,6 @@ squashed.
 [1]: https://github.com/Keats/tera/blob/1a0ce70af178a5cb519a231cc6afeab947f1728e/CHANGELOG.md
 
 
-### Contributions
-
-This release is made possible by the following people (in alphabetical order).
-Thank you all for your contributions. Your work – no matter how significant – is
-greatly appreciated by the community. 💖
-
-- Jean Mertz (<git@jeanmertz.com>)
-
 ### Changes
 
 #### Bug Fixes
@@ -207,14 +317,6 @@ recognised as release tags.
 
 Enjoy!
 
-
-### Contributions
-
-This release is made possible by the following people (in alphabetical order).
-Thank you all for your contributions. Your work – no matter how significant – is
-greatly appreciated by the community. 💖
-
-- Jean Mertz (<jean@mertz.fm>)
 
 ### Changes
 
@@ -315,14 +417,6 @@ tests].
 [those unit tests]: https://github.com/rustic-games/jilu/issues/4
 
 
-### Contributions
-
-This release is made possible by the following people (in alphabetical order).
-Thank you all for your contributions. Your work – no matter how significant – is
-greatly appreciated by the community. 💖
-
-- Jean Mertz (<jean@mertz.fm>)
-
 ### Changes
 
 #### Bug Fixes
@@ -383,14 +477,6 @@ Be sure to check out the project [README] if you haven't already!
 [annotated git tag]: https://git-scm.com/book/en/v2/Git-Basics-Tagging
 [readme]: https://github.com/rustic-games/jilu/blob/master/README.md#%E8%AE%B0%E5%BD%95
 
-
-### Contributions
-
-This release is made possible by the following people (in alphabetical order).
-Thank you all for your contributions. Your work – no matter how significant – is
-greatly appreciated by the community. 💖
-
-- Jean Mertz (<jean@mertz.fm>)
 
 ### Changes
 
@@ -453,7 +539,8 @@ greatly appreciated by the community. 💖
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.5.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/rustic-games/jilu/releases/tag/v0.6.0
 [0.5.0]: https://github.com/rustic-games/jilu/releases/tag/v0.5.0
 [0.4.0]: https://github.com/rustic-games/jilu/releases/tag/v0.4.0
 [0.3.0]: https://github.com/rustic-games/jilu/releases/tag/v0.3.0
@@ -463,6 +550,12 @@ greatly appreciated by the community. 💖
 
 <!-- [commits] -->
 
+[`a33ac8e`]: https://github.com/rustic-games/jilu/commit/a33ac8e9e846dea1904e62c268dd013a38f6d5a4
+[`56ce427`]: https://github.com/rustic-games/jilu/commit/56ce427cf82b4a0aba51a197ba49aca894217426
+[`1d15fe8`]: https://github.com/rustic-games/jilu/commit/1d15fe8e114561d88c46dfc528b95f6f39ab428c
+[`83192b5`]: https://github.com/rustic-games/jilu/commit/83192b516d9d1eb0f0a0685b07bebc27468f0995
+[`8c71b99`]: https://github.com/rustic-games/jilu/commit/8c71b996617925d0da7fd9dec1b7f26950dac8be
+[`8b86c59`]: https://github.com/rustic-games/jilu/commit/8b86c593c583a1737fe7850e390acff154221f81
 [`6cc1f0f`]: https://github.com/rustic-games/jilu/commit/6cc1f0fb49d81d3f78fe2500c91448800eab73d2
 [`11ae252`]: https://github.com/rustic-games/jilu/commit/11ae252eabdd6b853b912ecad21feaac06639ebc
 [`b598d90`]: https://github.com/rustic-games/jilu/commit/b598d906bff3805b77a3a4aea0ee4b6cb331c62b

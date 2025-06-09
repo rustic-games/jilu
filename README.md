@@ -49,7 +49,7 @@ What matters most is the success of your project, with or without the help of
    - Using [release binaries]:
 
      ```shell
-     curl -L https://github.com/rustic-games/jilu/releases/download/v0.5.0/jilu_0.5.0_$(uname)_x86_64.tar.gz | tar -xvf - jilu
+     curl -L https://github.com/rustic-games/jilu/releases/download/v0.6.0/jilu_$(uname)_x86_64.tar.gz | tar -xvf - jilu
      ```
 
    - ~~Using [Homebrew]~~ _(soon)_:

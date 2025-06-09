@@ -3,7 +3,7 @@ mod changeset;
 mod contributor;
 mod release;
 
-pub(crate) use self::change::Change;
+pub use self::change::Change;
 pub(crate) use self::changeset::ChangeSet;
 pub(crate) use self::contributor::Contributor;
 pub(crate) use self::release::Release;
@@ -14,13 +14,13 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct Changelog<'a> {
-    config: Config,
+    config: &'a Config,
     unreleased: ChangeSet<'a>,
     releases: Vec<Release<'a>>,
 }
 
 impl<'a> Changelog<'a> {
-    pub fn new(config: Config, commits: &'a [Commit], tags: Vec<Tag>) -> Result<Self, Error> {
+    pub fn new(config: &'a Config, commits: &'a [Commit], tags: Vec<Tag>) -> Result<Self, Error> {
         let mut offset = 0;
 
         let mut releases = tags
@@ -49,6 +49,11 @@ impl<'a> Changelog<'a> {
             releases,
             unreleased,
         })
+    }
+
+    /// Get the unreleased changes.
+    pub fn unreleased(&self) -> &ChangeSet<'a> {
+        &self.unreleased
     }
 
     pub fn render(&self) -> Result<String, Error> {

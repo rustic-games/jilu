@@ -6,7 +6,7 @@ use serde::Serialize;
 
 /// A set of changes belonging together.
 #[derive(Debug, Default)]
-pub(crate) struct ChangeSet<'a> {
+pub struct ChangeSet<'a> {
     /// Internal reference to the changes in this change set.
     changes: Vec<Change<'a>>,
 }
@@ -95,7 +95,7 @@ impl<'a> ChangeSet<'a> {
     }
 
     /// Return the list of changes in this change set.
-    pub(crate) fn changes(&self) -> &[Change] {
+    pub fn changes(&self) -> &[Change] {
         &self.changes
     }
 

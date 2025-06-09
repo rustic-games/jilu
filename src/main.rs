@@ -1,6 +1,7 @@
 use std::{convert::TryInto as _, env, io::Write as _, process::Command};
 
 use jilu::{
+    changelog::Change,
     git::{self, Tag},
     Changelog, Config, Error,
 };
@@ -22,12 +23,14 @@ fn run() -> Result<String, Error> {
     let commits = git::commits(&repo)?;
     let mut tags = git::tags(&repo)?;
 
-    if let Some(tag) = tag_unreleased(&repo)? {
+    if let Ok(version) = env::var("RELEASE") {
+        let log = Changelog::new(&config, &commits, tags.clone())?;
+        let tag = tag_unreleased(&repo, version, log.unreleased().changes())?;
         tags.push(tag);
         tags.sort_by(|a, b| a.version.cmp(&b.version));
     }
 
-    Changelog::new(config, &commits, tags)?.render()
+    Changelog::new(&config, &commits, tags)?.render()
 }
 
 /// Group all unreleased commits into a new release.
@@ -39,20 +42,17 @@ fn run() -> Result<String, Error> {
 /// Once the change log is rendered, the user can create a commit with the
 /// updated change log, and then create a tag with the same version and release
 /// notes as the one used for the unreleased commits.
-fn tag_unreleased(repo: &git2::Repository) -> Result<Option<Tag>, Error> {
-    let Some(version) = env::var("RELEASE")
-        .ok()
-        .map(|tag| Version::parse(tag.strip_prefix('v').unwrap_or(&tag)))
-        .transpose()?
-    else {
-        return Ok(None);
-    };
-
+fn tag_unreleased(
+    repo: &git2::Repository,
+    version: String,
+    changes: &[Change],
+) -> Result<Tag, Error> {
+    let version = Version::parse(version.strip_prefix('v').unwrap_or(&version))?;
     let notes = env::var("RELEASE_NOTES")
         .map(|v| v.replace("\\n", "\n"))
         .ok();
     let edit = env::var("RELEASE_EDIT").is_ok_and(|v| !v.is_empty());
-    let instructions = format!(
+    let mut instructions = format!(
         r#"
 #
 # Write a message for release:
@@ -63,6 +63,13 @@ fn tag_unreleased(repo: &git2::Repository) -> Result<Option<Tag>, Error> {
 # - This comment will be stripped from the release notes."#,
         version
     );
+
+    if !changes.is_empty() {
+        instructions.push_str("\n#\n# CHANGES:\n#");
+        for change in changes {
+            instructions.push_str(&format!("\n# {change:#}"));
+        }
+    }
 
     let mut message = notes.unwrap_or_default();
     if edit {
@@ -81,11 +88,11 @@ fn tag_unreleased(repo: &git2::Repository) -> Result<Option<Tag>, Error> {
             .to_owned();
     }
 
-    Ok(Some(Tag {
+    Ok(Tag {
         name: format!("v{}", version),
         message: Some(message),
         version,
         tagger: repo.signature()?.try_into().ok(),
         commit: repo.head()?.peel_to_commit()?.try_into()?,
-    }))
+    })
 }

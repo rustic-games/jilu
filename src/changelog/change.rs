@@ -5,11 +5,12 @@ use conventional::{Commit as CCommit, Simple as _};
 use serde::ser::{SerializeStruct, Serializer};
 use serde::Serialize;
 use std::collections::HashMap;
+use std::fmt;
 use tera::Value;
 
 /// A single change in the change log.
 #[derive(Debug)]
-pub(crate) struct Change<'a> {
+pub struct Change<'a> {
     commit: &'a Commit,
     conventional: CCommit<'a>,
 }
@@ -70,6 +71,21 @@ impl<'a> Change<'a> {
             self.commit.author.email.as_str(),
         )
             .into()
+    }
+}
+
+impl fmt::Display for Change<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            self.conventional
+                .to_string()
+                .lines()
+                .next()
+                .unwrap_or_default()
+                .fmt(f)
+        } else {
+            write!(f, "{}", self.conventional)
+        }
     }
 }
 

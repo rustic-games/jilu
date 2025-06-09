@@ -8,7 +8,7 @@ use semver::Version;
 use std::convert::{TryFrom, TryInto};
 
 /// A commit owning all the relevant data to be used in Jilu.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Commit {
     pub id: String,
     pub short_id: String,
@@ -19,7 +19,7 @@ pub struct Commit {
 }
 
 /// A tag owning all the relevant data to be used in Jilu.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tag {
     pub message: Option<String>,
     pub name: String,
@@ -29,7 +29,7 @@ pub struct Tag {
 }
 
 /// A signature owning all the relevant data to be used in Jilu.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Signature {
     pub email: String,
     pub name: String,

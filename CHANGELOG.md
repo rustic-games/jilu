@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.8.0`](#0.8.0) – _2025.06.09_
 - [`0.7.0`](#0.7.0) – _2025.06.09_
 - [`0.6.0`](#0.6.0) – _2025.06.09_
 - [`0.5.0`](#0.5.0) – _2025.06.07_
@@ -25,6 +26,37 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 _nothing new to show for… yet!_
 
+<a id="0.8.0" />
+## [0.8.0] – _Commit or don't, there is no such thing as a free lunch._
+
+_2025.06.09_
+
+Swap `--tag` for `--commit`, bringing us closer to a proper release
+workflow.
+
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<git@jeanmertz.com>)
+
+### Changes
+
+#### Features
+
+- **Add commit functionality to release workflow** ([`83e7793`])
+
+  The release workflow now supports committing changes in addition to
+  creating tags. The `--tag` flag has been renamed to `--commit` to better
+  reflect its expanded functionality. When used, Jilu will stage the
+  changelog file, create a commit with the message "chore: Release
+  v{version}", and then create the corresponding Git tag.
+
+  This makes the tool useful in a variety of release workflows.
+
 <a id="0.7.0" />
 ## [0.7.0] – _Tag, you're it!_
 
@@ -32,6 +64,14 @@ _2025.06.09_
 
 Tag your releases, plain and simple.
 
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<git@jeanmertz.com>)
 
 ### Changes
 
@@ -59,6 +99,14 @@ A list of changes that make using Jilu a little easier.
   `IGNORE_CONTRIBUTORS`.
 - Support HTML comments in change log templates.
 
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<git@jeanmertz.com>)
 
 ### Changes
 
@@ -189,6 +237,14 @@ more features.
 Enjoy!
 
 
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<git@jeanmertz.com>)
+
 ### Changes
 
 #### Bug Fixes
@@ -301,6 +357,14 @@ squashed.
 [1]: https://github.com/Keats/tera/blob/1a0ce70af178a5cb519a231cc6afeab947f1728e/CHANGELOG.md
 
 
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<git@jeanmertz.com>)
+
 ### Changes
 
 #### Bug Fixes
@@ -338,6 +402,14 @@ recognised as release tags.
 
 Enjoy!
 
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<jean@mertz.fm>)
 
 ### Changes
 
@@ -438,6 +510,14 @@ tests].
 [those unit tests]: https://github.com/rustic-games/jilu/issues/4
 
 
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<jean@mertz.fm>)
+
 ### Changes
 
 #### Bug Fixes
@@ -498,6 +578,14 @@ Be sure to check out the project [README] if you haven't already!
 [annotated git tag]: https://git-scm.com/book/en/v2/Git-Basics-Tagging
 [readme]: https://github.com/rustic-games/jilu/blob/master/README.md#%E8%AE%B0%E5%BD%95
 
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz (<jean@mertz.fm>)
 
 ### Changes
 
@@ -560,7 +648,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.7.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/rustic-games/jilu/releases/tag/v0.8.0
 [0.7.0]: https://github.com/rustic-games/jilu/releases/tag/v0.7.0
 [0.6.0]: https://github.com/rustic-games/jilu/releases/tag/v0.6.0
 [0.5.0]: https://github.com/rustic-games/jilu/releases/tag/v0.5.0
@@ -572,6 +661,7 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [commits] -->
 
+[`83e7793`]: https://github.com/rustic-games/jilu/commit/83e7793ab13dcf9739f0d76684ef0e9c08b98ee4
 [`95f91a0`]: https://github.com/rustic-games/jilu/commit/95f91a0d63864a40e7a424a0940461a8c0b90da7
 [`a33ac8e`]: https://github.com/rustic-games/jilu/commit/a33ac8e9e846dea1904e62c268dd013a38f6d5a4
 [`56ce427`]: https://github.com/rustic-games/jilu/commit/56ce427cf82b4a0aba51a197ba49aca894217426

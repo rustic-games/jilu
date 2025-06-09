@@ -123,25 +123,13 @@ features], or [provide bug fixes]!
 
 ### Usage
 
-Pipe the output of `jilu` to your change log file:
+Save the output of `jilu` to your change log file:
 
-```
-jilu > CHANGELOG.md
-```
-
-Note, if you've added [custom configurations] to your change log, this won't
-work, as Unix will empty the `CHANGELOG.md` file first, before `jilu` can read
-its contents, meaning it won't be able to read any existing configuration.
-
-To work around this, use a tool like [`sponge`] to soak up the output of `jilu`
-before redirecting it to the file:
-
-```
-jilu | sponge CHANGELOG.md
+```sh
+jilu --write CHANGELOG.md
 ```
 
-[custom configurations]: #configurable
-[`sponge`]: https://linux.die.net/man/1/sponge
+Remove `--write` to print the change log to `stdout` instead.
 
 ### Design
 

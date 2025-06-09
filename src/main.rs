@@ -17,9 +17,41 @@ fn main() {
     }
 }
 
+struct Opts {
+    /// The change log file. Defaults to `CHANGELOG.md`.
+    file: String,
+
+    /// If set, the change log will be written to the file instead of printed to
+    /// `stdout`.
+    write: bool,
+}
+
+impl Opts {
+    fn parse() -> Self {
+        let mut write = false;
+        let file = std::env::args()
+            .next_back()
+            .filter(|arg| !arg.starts_with('-'))
+            .unwrap_or_else(|| "CHANGELOG.md".to_owned());
+
+        for arg in std::env::args().skip(1) {
+            match arg.as_str() {
+                "--write" | "-w" => {
+                    write = true;
+                }
+                _ => continue,
+            }
+        }
+
+        Self { file, write }
+    }
+}
+
 fn run() -> Result<String, Error> {
+    let opts = Opts::parse();
+
     let repo = git2::Repository::open(".")?;
-    let config = Config::from_environment(&repo)?;
+    let config = Config::from_environment(&repo, &opts.file)?;
     let commits = git::commits(&repo)?;
     let mut tags = git::tags(&repo)?;
 
@@ -30,7 +62,13 @@ fn run() -> Result<String, Error> {
         tags.sort_by(|a, b| a.version.cmp(&b.version));
     }
 
-    Changelog::new(&config, &commits, tags)?.render()
+    let out = Changelog::new(&config, &commits, tags)?.render()?;
+    Ok(if opts.write {
+        std::fs::write(opts.file, out)?;
+        String::new()
+    } else {
+        out
+    })
 }
 
 /// Group all unreleased commits into a new release.

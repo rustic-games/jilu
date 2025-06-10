@@ -54,7 +54,9 @@ release VERSION:
     # 2. Create the tag
     # 3. Push the latest commit and tag
     msg=$(jq -r '[.subject, .notes] | join("\n\n")' "$release")
-    git tag --sign --message "$msg" "v$version"
+    changes=$(echo "$release" | jq -r '.changeset.changes | map("`" + .commit.short_id + "` " + .type + if .scope then "(" + .scope + ")" else "" end + ": " + .description) | join("\n")')
+
+    git tag --sign --message "$msg\n\n$changes" "v$version"
     git push --tags
     git push
 

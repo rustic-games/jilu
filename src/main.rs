@@ -52,6 +52,9 @@ struct Opts {
     /// `stdout`.
     write: bool,
 
+    /// If set, the change log will be rendered without inline configuration.
+    strip_config: bool,
+
     /// Output the release notes either in `text` or `json` format. Defaults to
     /// `text`, unless `write` is set, in which case it defaults to `none`.
     output: Option<String>,
@@ -78,6 +81,7 @@ impl Opts {
         use lexopt::{Arg::*, ValueExt as _};
 
         let mut write = false;
+        let mut strip_config = false;
         let mut output = None;
         let mut output_file = None;
         let mut file = None;
@@ -115,6 +119,9 @@ impl Opts {
                 Short('e') | Long("edit") => {
                     edit_release_notes = true;
                 }
+                Long("strip-config") => {
+                    strip_config = true;
+                }
                 Short('h') | Long("help") => {
                     println!("Usage: jilu [-r|--release=VERSION] [-n|--notes=RELEASE_NOTES] [-e|--edit] [-w|--write] [CHANGELOG]");
                     std::process::exit(0);
@@ -143,6 +150,7 @@ impl Opts {
         Ok(Self {
             file,
             write,
+            strip_config,
             output,
             output_file,
             release,
@@ -175,11 +183,11 @@ fn run(opts: Opts) -> Result<String, Error> {
     let log = Changelog::new(&config, &commits, tags)?;
 
     if opts.write {
-        std::fs::write(&opts.file, log.render()?)?;
+        std::fs::write(&opts.file, log.render(!opts.strip_config)?)?;
     }
 
     match (opts.output.as_deref(), opts.jq.as_deref()) {
-        (Some("text"), _) => Ok(log.render()?),
+        (Some("text"), _) => Ok(log.render(!opts.strip_config)?),
         (Some("json"), None) => Ok(serde_json::to_string(&log)?),
         (Some("json"), Some(code)) => {
             let json = serde_json::to_value(&log)?;

@@ -62,7 +62,7 @@ impl<'a> Changelog<'a> {
         &self.unreleased
     }
 
-    pub fn render(&self) -> Result<String, Error> {
+    pub fn render(&self, include_metadata: bool) -> Result<String, Error> {
         let context = tera::Context::from_serialize(self)?;
         let mut tera = tera::Tera::default();
         let template = self
@@ -80,8 +80,10 @@ impl<'a> Changelog<'a> {
         tera.register_filter("scopeheader", scope_header);
 
         let mut log = tera.render("template", &context)?;
-        if let Some(metadata) = &self.config.metadata {
-            log.push_str(&format!("\n{}\n", metadata));
+        if include_metadata {
+            if let Some(metadata) = &self.config.metadata {
+                log.push_str(&format!("\n\n{}\n", metadata));
+            }
         }
 
         Ok(log)

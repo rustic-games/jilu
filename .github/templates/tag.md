@@ -6,21 +6,24 @@ Config(
 
 Template(
 {%- set release = releases | first -%}
-{{ release.version }}{% if release.subject %} — {{ release.subject }}{% endif %}
+v{{ release.version }}{% if release.subject %} — {{ release.subject }}{% endif %}
 
 {%- if release.notes %}
 
 {{ release.notes }}
-{%- endif %}
 
 ---
-
-{% for change in release.changeset.changes -%}
-{% if change.merge_commit_description -%}
-- [`{{ change.commit.short_id }}`] {{ change.type }}{% if change.scope %}({{ change.scope }}){% endif %}: {{ change.merge_commit_description.description }} ([#{{change.merge_commit_description.pr_number }}][pr#{{ change.merge_commit_description.pr_number }}])
-{%- else -%}
-- [`{{ change.commit.short_id }}`] {{ change.type }}{% if change.scope %}({{ change.scope }}){% endif %}: {{ change.description }}
 {%- endif %}
+{% for type, changes in release.changeset.changes | group_by(attribute="type") %}
+**{{ type | typeheader }}**
+
+{% for change in changes -%}
+{% if change.merge_commit_description -%}
+- [`{{ change.commit.short_id }}`] {% if change.scope %}{{ change.scope }}: {% endif %}{{ change.merge_commit_description.description }} ([#{{change.merge_commit_description.pr_number }}][pr#{{ change.merge_commit_description.pr_number }}])
+{%- else -%}
+- [`{{ change.commit.short_id }}`] {% if change.scope %}{{ change.scope }}: {% endif %}{{ change.description }}
+{%- endif %}
+{% endfor -%}
 {% endfor %}
 
 {%- set ignored_contributors = get_env(name="IGNORE_CONTRIBUTORS", default="") | split(pat=",") -%}

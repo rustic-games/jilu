@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.10.0`](#0.10.0) – _2025.06.10_
 - [`0.9.0`](#0.9.0) – _2025.06.10_
 - [`0.8.0`](#0.8.0) – _2025.06.09_
 - [`0.7.0`](#0.7.0) – _2025.06.09_
@@ -26,6 +27,38 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+<a id="0.10.0" />
+
+## [0.10.0]
+
+_2025.06.10_
+### Changes
+
+#### Bug Fixes
+
+- **handle empty release notes** ([`f0274d6`])
+
+- **write to stdout by default, as intended** ([`e08fb2c`])
+
+- **resolve newline formatting in default template** ([`c3ae8ed`])
+
+#### Features
+
+- **`--strip-config` excludes metadata from rendered changelog** ([`b0dcc8a`])
+
+  This change introduces a new command line option that allows users to
+  generate changelog output without the inline configuration metadata.
+  When the `--strip-config` flag is provided, the rendered changelog will
+  omit any metadata section that would normally be appended.
+
+  This is useful when you want to render a template to stdout without
+  overwriting the file itself that contains the metadata. You can use this
+  to have dedicated "template" files that Jilu can use to render to
+  stdout. For example; if you have a `tag.md` file that contains only
+  metadata with a custom `Template` section, you can use it to render the
+  contents of a tag, pipe the output to a file, and use that file as the
+  input for the tag message.
 
 <a id="0.9.0" />
 
@@ -135,8 +168,18 @@ Here’s how you can create the relevant release commit and tag in a shell
 script:
 
 ```sh
+# Create a temporary file to store the change log JSON output. This is
+# required, because using `--edit` requires stdout to be a TTY for our
+# editor, so we need to write the JSON output to a file instead of
+# stdout.
 release=$(mktemp)
 
+# 1. We group the unreleased changes in a new release 0.9.0
+# 2. We edit the release notes in our $EDITOR
+# 3. We write the changes to our CHANGELOG.md
+# 4. We return the change log data as JSON to stdout
+# 5. We filter the JSON to the latest release (0.9.0)
+# 6. We write the JSON output to our temporary file
 jilu --release=v0.9.0 \
      --edit \
      --write \
@@ -144,11 +187,17 @@ jilu --release=v0.9.0 \
      --jq='.releases[0]' \
      --output-file="$release"
 
+# 1. We make sure to stage the change log changes
 git add CHANGELOG.md
 
+# 1. We use `jq -r` to produce a raw (unquoted) string for us
+# 2. We create a new release commit message
+# 3. We commit the staged changes
 msg=$(echo "$release" | jq -r '"chore: Release v" + .version')
 git commit --message "$msg"
 
+# 1. We create a new release tag message
+# 2. We create the tag
 msg=$(echo "$release" | jq -r '[.subject, .notes] | join("\n\n")')
 git tag --sign --message "$msg"
 ```
@@ -745,7 +794,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.9.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/rustic-games/jilu/releases/tag/v0.10.0
 [0.9.0]: https://github.com/rustic-games/jilu/releases/tag/v0.9.0
 [0.8.0]: https://github.com/rustic-games/jilu/releases/tag/v0.8.0
 [0.7.0]: https://github.com/rustic-games/jilu/releases/tag/v0.7.0
@@ -759,6 +809,10 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [commits] -->
 
+[`f0274d6`]: https://github.com/rustic-games/jilu/commit/f0274d6d85f30edad1659bcb8fe2396d2e87f1e7
+[`e08fb2c`]: https://github.com/rustic-games/jilu/commit/e08fb2c5f5183de3508832c63b627d29cce98cce
+[`b0dcc8a`]: https://github.com/rustic-games/jilu/commit/b0dcc8a5e9eb4d6ea1a1c60156f34e0a6a61e6db
+[`c3ae8ed`]: https://github.com/rustic-games/jilu/commit/c3ae8ed436504756aee87a82be06ec4b8ade2627
 [`e52d264`]: https://github.com/rustic-games/jilu/commit/e52d26449f430dbf8a066d9d005cee8a273f1873
 [`391a952`]: https://github.com/rustic-games/jilu/commit/391a9525a6b824e81073be36d6570fb456eba51e
 [`83e7793`]: https://github.com/rustic-games/jilu/commit/83e7793ab13dcf9739f0d76684ef0e9c08b98ee4
@@ -793,6 +847,7 @@ Be sure to check out the project [README] if you haven't already!
 [`c62baf6`]: https://github.com/rustic-games/jilu/commit/c62baf6627a3e0bb6d9c99ba93b9021caf083d6e
 
 <!-- [pull requests] -->
+
 
 
 <!--

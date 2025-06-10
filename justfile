@@ -56,6 +56,7 @@ release VERSION:
     msg=$(jq -r '[.subject, .notes] | join("\n\n")' "$release")
     git tag --sign --message "$msg" "v$version"
     git push --tags
+    git push
 
     # 1. Set environment variables to use in `.goreleaser.yml` templates
     # 2. Run `goreleaser` to create the release on GitHub

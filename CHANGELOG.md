@@ -135,18 +135,8 @@ Here’s how you can create the relevant release commit and tag in a shell
 script:
 
 ```sh
-# Create a temporary file to store the change log JSON output. This is
-# required, because using `--edit` requires stdout to be a TTY for our
-# editor, so we need to write the JSON output to a file instead of
-# stdout.
 release=$(mktemp)
 
-# 1. We group the unreleased changes in a new release 0.9.0
-# 2. We edit the release notes in our $EDITOR
-# 3. We write the changes to our CHANGELOG.md
-# 4. We return the change log data as JSON to stdout
-# 5. We filter the JSON to the latest release (0.9.0)
-# 6. We write the JSON output to our temporary file
 jilu --release=v0.9.0 \
      --edit \
      --write \
@@ -154,17 +144,11 @@ jilu --release=v0.9.0 \
      --jq='.releases[0]' \
      --output-file="$release"
 
-# 1. We make sure to stage the change log changes
 git add CHANGELOG.md
 
-# 1. We use `jq -r` to produce a raw (unquoted) string for us
-# 2. We create a new release commit message
-# 3. We commit the staged changes
 msg=$(echo "$release" | jq -r '"chore: Release v" + .version')
 git commit --message "$msg"
 
-# 1. We create a new release tag message
-# 2. We create the tag
 msg=$(echo "$release" | jq -r '[.subject, .notes] | join("\n\n")')
 git tag --sign --message "$msg"
 ```
@@ -173,7 +157,6 @@ This is one example, but it shows how you can use the structured data
 any way you want in your release pipeline, without Jilu becoming a
 bloated complicated tool that does too many things poorly, instead of a
 dedicated tool that does a few things extremely well.
-
 
 ### Changes
 
@@ -213,7 +196,6 @@ _2025.06.09_
 Swap `--tag` for `--commit`, bringing us closer to a proper release
 workflow.
 
-
 ### Changes
 
 #### Features
@@ -235,7 +217,6 @@ workflow.
 _2025.06.09_
 
 Tag your releases, plain and simple.
-
 
 ### Changes
 
@@ -263,7 +244,6 @@ A list of changes that make using Jilu a little easier.
 - Skip thanking specific contributors in the default template using
   `IGNORE_CONTRIBUTORS`.
 - Support HTML comments in change log templates.
-
 
 ### Changes
 
@@ -394,7 +374,6 @@ more features.
 
 Enjoy!
 
-
 ### Changes
 
 #### Bug Fixes
@@ -471,7 +450,6 @@ See the [default template file](./template.md) for an example of the
 `type` feature, which should give you an idea on how to use `scope` and
 its configurables.
 
-
 ### Contributions
 
 This release is made possible by the following people (in alphabetical order).
@@ -507,7 +485,6 @@ squashed.
 
 [0]: https://tera.netlify.com/
 [1]: https://github.com/Keats/tera/blob/1a0ce70af178a5cb519a231cc6afeab947f1728e/CHANGELOG.md
-
 
 ### Changes
 
@@ -546,7 +523,6 @@ tags starting with a `v`, so both `0.1.0` and `v0.2.0` tags are now
 recognised as release tags.
 
 Enjoy!
-
 
 ### Changes
 
@@ -647,7 +623,6 @@ tests].
 
 [those unit tests]: https://github.com/rustic-games/jilu/issues/4
 
-
 ### Changes
 
 #### Bug Fixes
@@ -708,7 +683,6 @@ Be sure to check out the project [README] if you haven't already!
 [conventional commits]: https://www.conventionalcommits.org/en/v1.0.0-beta.4/
 [annotated git tag]: https://git-scm.com/book/en/v2/Git-Basics-Tagging
 [readme]: https://github.com/rustic-games/jilu/blob/master/README.md#%E8%AE%B0%E5%BD%95
-
 
 ### Changes
 

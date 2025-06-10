@@ -1,16 +1,43 @@
 use std::{convert::TryInto as _, env, io::Write as _, process::Command};
 
+use jaq_core::load;
 use jilu::{
     changelog::Change,
     git::{self, Tag},
     Changelog, Config, Error,
 };
 use semver::Version;
+use serde_json::Value;
 
 fn main() {
-    match run() {
-        Ok(log) => print!("{}", log),
+    let opts = match Opts::parse() {
+        Ok(opts) => opts,
         Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+    };
+
+    let file = match opts.output_file.as_deref() {
+        None => None,
+        Some(file) => match std::fs::OpenOptions::new().write(true).open(file) {
+            Ok(file) => Some(file),
+            Err(err) => {
+                eprintln!("Cannot open output file {}: {}", file, err);
+                std::process::exit(1);
+            }
+        },
+    };
+
+    match (run(opts), file) {
+        (Ok(log), None) => print!("{}", log),
+        (Ok(log), Some(mut file)) => {
+            if let Err(err) = file.write_all(log.as_bytes()) {
+                eprintln!("Cannot write to output file: {}", err);
+                std::process::exit(1);
+            }
+        }
+        (Err(err), _) => {
             eprintln!("{}", err);
             std::process::exit(1);
         }
@@ -25,6 +52,14 @@ struct Opts {
     /// `stdout`.
     write: bool,
 
+    /// Output the release notes either in `text` or `json` format. Defaults to
+    /// `text`, unless `write` is set, in which case it defaults to `none`.
+    output: Option<String>,
+
+    /// If set, the output will be written to the file instead of printed to
+    /// `stdout`.
+    output_file: Option<String>,
+
     /// Version to use for the unreleased changes.
     release: Option<String>,
 
@@ -34,8 +69,8 @@ struct Opts {
     /// Edit the release notes in `$EDITOR`.
     edit_release_notes: bool,
 
-    /// Commit the release to Git, including the tag.
-    commit_release: bool,
+    /// Optional `jq` query filter to apply to the JSON output.
+    jq: Option<String>,
 }
 
 impl Opts {
@@ -43,11 +78,13 @@ impl Opts {
         use lexopt::{Arg::*, ValueExt as _};
 
         let mut write = false;
+        let mut output = None;
+        let mut output_file = None;
         let mut file = None;
+        let mut jq = None;
         let mut release = None;
         let mut release_notes = None;
         let mut edit_release_notes = false;
-        let mut commit_release = false;
 
         let mut parser = lexopt::Parser::from_env();
         while let Some(arg) = parser.next()? {
@@ -55,17 +92,28 @@ impl Opts {
                 Short('w') | Long("write") => {
                     write = true;
                 }
+                Short('o') | Long("output") => {
+                    output = match parser.value()?.parse()? {
+                        v if v == "text" => Some(v),
+                        v if v == "json" => Some(v),
+                        v if v == "none" => Some(v),
+                        _ => None,
+                    };
+                }
+                Short('f') | Long("output-file") => {
+                    output_file = Some(parser.value()?.string()?);
+                }
                 Short('r') | Long("release") => {
                     release = Some(parser.value()?.parse()?);
                 }
                 Short('n') | Long("notes") => {
                     release_notes = Some(parser.value()?.parse()?);
                 }
+                Short('q') | Long("jq") => {
+                    jq = Some(parser.value()?.parse()?);
+                }
                 Short('e') | Long("edit") => {
                     edit_release_notes = true;
-                }
-                Short('c') | Long("commit") => {
-                    commit_release = true;
                 }
                 Short('h') | Long("help") => {
                     println!("Usage: jilu [-r|--release=VERSION] [-n|--notes=RELEASE_NOTES] [-e|--edit] [-w|--write] [CHANGELOG]");
@@ -86,22 +134,26 @@ impl Opts {
         let release = release.or_else(|| env::var("RELEASE").ok());
         let release_notes = release_notes.or_else(|| env::var("RELEASE_NOTES").ok());
         let edit_release_notes = edit_release_notes || env::var("RELEASE_EDIT").is_ok();
-        let commit_release = commit_release || env::var("RELEASE_COMMIT").is_ok();
+        if write && output.is_some() && output_file.is_none() {
+            Err(lexopt::Error::from(
+                "Using --write and --output together requires --output-file.",
+            ))?;
+        }
 
         Ok(Self {
             file,
             write,
+            output,
+            output_file,
             release,
             release_notes,
             edit_release_notes,
-            commit_release,
+            jq,
         })
     }
 }
 
-fn run() -> Result<String, Error> {
-    let opts = Opts::parse()?;
-
+fn run(opts: Opts) -> Result<String, Error> {
     let repo = git2::Repository::open(".")?;
     let config = Config::from_environment(&repo, &opts.file)?;
     let commits = git::commits(&repo)?;
@@ -126,31 +178,45 @@ fn run() -> Result<String, Error> {
         std::fs::write(&opts.file, log.render()?)?;
     }
 
-    if opts.commit_release {
-        if !log.unreleased().changes().is_empty() {
-            return Err(Error::Generic(
-                "Cannot commit with unreleased changes. Requires `--release`.".to_owned(),
-            ));
+    match (opts.output.as_deref(), opts.jq.as_deref()) {
+        (Some("text"), _) => Ok(log.render()?),
+        (Some("json"), None) => Ok(serde_json::to_string(&log)?),
+        (Some("json"), Some(code)) => {
+            let json = serde_json::to_value(&log)?;
+            let program = load::File { code, path: () };
+            let loader = load::Loader::new(jaq_std::defs().chain(jaq_json::defs()));
+            let arena = load::Arena::default();
+            let modules = loader.load(&arena, program)?;
+            let filter = jaq_core::Compiler::default()
+                .with_funs(
+                    jaq_std::funs()
+                        .chain(jaq_json::funs())
+                        .chain(jq_raw().into_vec().into_iter().map(jaq_std::run)),
+                )
+                .compile(modules)?;
+            let inputs = jaq_core::RcIter::new(core::iter::empty());
+            let out = filter.run((jaq_core::Ctx::new([], &inputs), jaq_json::Val::from(json)));
+
+            let value = out
+                .map(|v| v.map(Value::from))
+                .collect::<Result<Vec<_>, jaq_core::Error<jaq_json::Val>>>()?;
+
+            let value = if value.len() <= 1 {
+                value.into_iter().next().unwrap_or(Value::Null)
+            } else {
+                value.into()
+            };
+
+            match value {
+                Value::String(s) if s.starts_with("$$special::raw$$") => Ok(s
+                    .strip_prefix("$$special::raw$$")
+                    .unwrap_or_default()
+                    .to_string()),
+                _ => Ok(serde_json::to_string(&value)?),
+            }
         }
-
-        let Some(release) = log.releases().next() else {
-            return Err(Error::Generic("No releases to commit.".to_owned()));
-        };
-
-        let commit_message = format!("chore: Release v{}", release.version());
-        Command::new("git").args(["add", &opts.file]).status()?;
-        Command::new("git")
-            .args(["commit", "-sm", &commit_message])
-            .status()?;
-
-        release.tag().persist(&repo)?;
+        _ => Ok(String::new()),
     }
-
-    Ok(if opts.write {
-        String::new()
-    } else {
-        log.render()?
-    })
 }
 
 /// Group all unreleased commits into a new release.
@@ -214,4 +280,35 @@ fn tag_unreleased(
         tagger: repo.signature()?.try_into().ok(),
         commit: repo.head()?.peel_to_commit()?.try_into()?,
     })
+}
+
+/// Mark a JSON string as "raw".
+///
+/// This is used when printing JSON values to stdout, to allow printing JSON
+/// strings without surrounding quotes.
+///
+/// This is similar to Jq's `-r` or `--raw-output` flag:
+///
+/// ```sh
+/// jilu --output json --jq '.config.github.repo'       # => "rust-lang/jilu"
+/// jilu --output json --jq '.config.github.repo | raw' # =>  rust-lang/jilu
+/// ```
+///
+/// Note that this uses an internal marker to signal that the string should be
+/// printed without quotes. This means using this function anywhere other than
+/// as the last filter in a chain will result in unexpected output:
+///
+/// ```sh
+/// jilu --output json --jq '.config.github | map(raw)' # => ["$$special::raw$$rustic-games/jilu"]
+/// ```
+fn jq_raw() -> Box<[jaq_std::Filter<jaq_core::RunPtr<jaq_json::Val>>]> {
+    use jaq_core::box_iter::box_once;
+    use jaq_std::v;
+
+    Box::new([("raw", v(0), |_, cv| {
+        box_once(Ok(match cv.1 {
+            jaq_json::Val::Str(v) => format!("$$special::raw$${v}").into(),
+            _ => cv.1.to_string().into(),
+        }))
+    })])
 }

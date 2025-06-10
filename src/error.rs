@@ -44,8 +44,15 @@ pub enum Error {
 
     /// Any error related to invalid UTF-8 bytes.
     Utf8Error,
+
+    /// A JSON parsing error.
+    Json(serde_json::Error),
+
+    /// A JQ program error.
+    Jq(String),
 }
 
+use jaq_core::load;
 use Error::*;
 
 impl fmt::Display for Error {
@@ -65,6 +72,8 @@ impl fmt::Display for Error {
             Template(ref err) => write!(f, "Template error: {}", err),
             Timestamp(ref err) => write!(f, "Timestamp error: {}", err),
             Utf8Error => f.write_str("UTF-8 error"),
+            Json(ref err) => write!(f, "JSON error: {}", err),
+            Jq(ref err) => write!(f, "JQ error: {}", err),
         }
     }
 }
@@ -81,8 +90,10 @@ impl error::Error for Error {
             SemVer(ref err) => Some(err),
             Template(ref err) => Some(err),
             Timestamp(ref err) => Some(err),
+            Json(ref err) => Some(err),
 
-            Generic(_) | InvalidCommitType | InvalidTag | MissingCommitMessage | Utf8Error => None,
+            Generic(_) | InvalidCommitType | InvalidTag | MissingCommitMessage | Utf8Error
+            | Jq(_) => None,
         }
     }
 }
@@ -150,5 +161,60 @@ impl From<tera::Error> for Error {
 impl From<lexopt::Error> for Error {
     fn from(err: lexopt::Error) -> Self {
         Error::Cli(err)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        Error::Json(err)
+    }
+}
+
+impl From<jaq_core::Error<jaq_json::Val>> for Error {
+    fn from(err: jaq_core::Error<jaq_json::Val>) -> Self {
+        Error::Jq(err.to_string())
+    }
+}
+
+impl<P> From<load::Errors<&str, P, Vec<jaq_core::compile::Error<&str>>>> for Error {
+    fn from(err: load::Errors<&str, P, Vec<jaq_core::compile::Error<&str>>>) -> Self {
+        Error::Jq(
+            err.into_iter()
+                .next()
+                .into_iter()
+                .flat_map(|e| {
+                    e.1.into_iter()
+                        .map(|(a, b)| format!("undefined {}: {a}", b.as_str()))
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>()
+                .join(", "),
+        )
+    }
+}
+
+impl<P> From<load::Errors<&str, P, load::Error<&str>>> for Error {
+    fn from(err: load::Errors<&str, P, load::Error<&str>>) -> Self {
+        Error::Jq(
+            err.first()
+                .map(|e| match &e.1 {
+                    load::Error::Io(items) => items
+                        .iter()
+                        .map(|(_, e)| e.clone())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    load::Error::Lex(items) => items
+                        .iter()
+                        .map(|(a, b)| format!("Expected {}, got {b}", a.as_str()))
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    load::Error::Parse(items) => items
+                        .iter()
+                        .map(|(a, b)| format!("Expected {}, got {b}", a.as_str()))
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                })
+                .unwrap_or_default(),
+        )
     }
 }

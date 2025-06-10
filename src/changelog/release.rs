@@ -25,8 +25,12 @@ impl Serialize for Release<'_> {
     {
         let mut state = serializer.serialize_struct("Release", 5)?;
         state.serialize_field("version", &self.version())?;
-        state.serialize_field("title", &self.title())?;
-        state.serialize_field("notes", &self.notes())?;
+        if let Some(subject) = self.subject() {
+            state.serialize_field("subject", &subject)?;
+        }
+        if let Some(notes) = self.notes() {
+            state.serialize_field("notes", &notes)?;
+        }
         state.serialize_field("date", &self.date())?;
         state.serialize_field("changeset", &self.changeset())?;
         state.end()
@@ -60,13 +64,13 @@ impl<'a> Release<'a> {
         &self.version
     }
 
-    /// The title of the release.
+    /// The subject of the release.
     ///
     /// This is similar to the _first line_ of the Git tag annotated message.
     ///
     /// If a lightweight tag was used to tag the release, it will have no
-    /// title.
-    pub(crate) fn title(&self) -> Option<&str> {
+    /// subject.
+    pub(crate) fn subject(&self) -> Option<&str> {
         self.tag.message.as_ref().and_then(|m| m.lines().next())
     }
 

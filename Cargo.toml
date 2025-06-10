@@ -26,10 +26,20 @@ semver = { version = "1", default-features = false, features = [
   "serde",
 ] }
 serde = { version = "1", default-features = false, features = ["derive"] }
+serde_json = { version = "1", default-features = false, features = [
+  "std",
+  "preserve_order",
+] }
+jaq-core = { version = "2", default-features = false, features = ["std"] }
+jaq-json = { version = "1", default-features = false, features = [
+  "parse",
+  "serde_json",
+] }
+jaq-std = { version = "2", default-features = false, features = ["default"] }
 url = { version = "2", default-features = false }
 tempfile = { version = "3", default-features = false }
 lexopt = { version = "0.3", default-features = false }
-tera = { version = "1.1.0", default-features = false, features = [
+tera = { version = "1", default-features = false, features = [
   "builtins",
   "preserve_order",
 ] }

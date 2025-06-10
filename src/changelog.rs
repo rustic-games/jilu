@@ -16,6 +16,7 @@ use serde::Serialize;
 pub struct Changelog<'a> {
     config: &'a Config,
     unreleased: ChangeSet<'a>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     releases: Vec<Release<'a>>,
 }
 

@@ -106,11 +106,17 @@ impl Serialize for Change<'_> {
         });
 
         let mut state = serializer.serialize_struct("Change", 4)?;
-        state.serialize_field("type", &self.type_())?;
-        state.serialize_field("scope", &self.scope())?;
-        state.serialize_field("description", &self.description())?;
-        state.serialize_field("merge_commit_description", &merge_commit)?;
-        state.serialize_field("body", &self.body())?;
+        state.serialize_field("type", self.type_())?;
+        if let Some(scope) = self.scope() {
+            state.serialize_field("scope", &scope)?;
+        }
+        state.serialize_field("description", self.description())?;
+        if let Some(merge_commit) = merge_commit {
+            state.serialize_field("merge_commit_description", &merge_commit)?;
+        }
+        if let Some(body) = self.body() {
+            state.serialize_field("body", &body)?;
+        }
         state.serialize_field("commit", &commit)?;
         state.end()
     }

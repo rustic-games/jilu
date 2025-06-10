@@ -8,50 +8,57 @@ run *ARGS:
 release VERSION:
     #!/usr/bin/env sh
     set -e
+    version="{{VERSION}}"
 
-    export IGNORE_CONTRIBUTORS="jean@mertz.fm,git@jeanmertz.com"
-
-    # Checks
+    # Make sure there are no uncommitted changes.
     if ! git diff-index --quiet HEAD --; then
         echo >&2 "Dirty workspace. Commit or stash changes first."
         exit 1
     fi
 
+    # Get the last annotated git tag.
     last_version=$(git describe --abbrev=0)
-    if [ "$last_version" == "v{{VERSION}}" ]; then
-        echo >&2 "Already on v{{VERSION}}. Nothing to do."
+    if [ "$last_version" == "v$version" ]; then
+        echo >&2 "Already on v$version. Nothing to do."
         exit 0
     fi
 
     # Update version references.
-    cargo set-version {{VERSION}}
-    sed -i '' -e "s/${last_version}/v{{VERSION}}/g" README.md
+    cargo set-version "$version"
+    sed -i '' -e "s/${last_version}/v${version}/g" README.md
+
+    # Create a temporary file to store the change log JSON output
+    release=$(mktemp)
+
+    # 1. Group the unreleased changes in a new release
+    # 2. Edit the release notes in our $EDITOR
+    # 3. Write the changes to our CHANGELOG.md
+    # 4. Output the change log data as JSON
+    # 5. Json query the change log to the latest release
+    # 6. Output the change log data to the temporary file
+    just run \
+        --release="$version" \
+        --edit \
+        --write \
+        --output=json \
+        --jq='.releases[0]' \
+        --output-file="$release"
+
+    # Make sure to stage all new changes.
     git add .
 
-    # Update change log, commit, and tag.
-    jilu --release {{VERSION}} --edit --write --commit
+    # Commit a new release commit
+    git commit --signoff --message "chore: Release v$version"
+
+    # 1. Create a new release tag message
+    # 2. Create the tag
+    # 3. Push the latest commit and tag
+    msg=$(jq -r '[.subject, .notes] | join("\n\n")' "$release")
+    git tag --sign --message "$msg" "v$version"
     git push --tags
 
-    # Create GitHub release, with assets.
-    goreleaser release --clean
-
-    # Set GitHub release subject/body, and mark as published.
-    #
-    # This is a "pro" feature of `goreleaser`. I'm willing to pay for good
-    # software, but this is not worth $15/month, so here are four lines of code
-    # that do the same thing.
-    tag_subject=$(git for-each-ref refs/tags/v{{VERSION}} --format='%(subject)')
-    tag_body=$(git for-each-ref refs/tags/v{{VERSION}} --format='%(body)')
-    release_id=$(gh api \
-        -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-        -q "map(select(.draft == true))[0].id" \
-        --paginate \
-        "/repos/rustic-games/jilu/releases")
-
-    gh api \
-        --method PATCH \
-        -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-        /repos/rustic-games/jilu/releases/${release_id} \
-        -f "name=${tag_subject}" -f "body=${tag_body}" -F "draft=false" --silent
+    # 1. Set environment variables to use in `.goreleaser.yml` templates
+    # 2. Run `goreleaser` to create the release on GitHub
+    export GORELEASER_RELEASE_SUBJECT=$(echo "$release" | jq -r '.subject')
+    export GORELEASER_RELEASE_NOTES=$(echo "$release" | jq -r '.notes')
+    goreleaser release --clean --release-notes=CHANGELOG.md

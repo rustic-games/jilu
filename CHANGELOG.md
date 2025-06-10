@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.9.0`](#0.9.0) – _2025.06.10_
 - [`0.8.0`](#0.8.0) – _2025.06.09_
 - [`0.7.0`](#0.7.0) – _2025.06.09_
 - [`0.6.0`](#0.6.0) – _2025.06.09_
@@ -24,7 +25,184 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## _[Unreleased]_
 
-- fix: properly render release headings on Github ([`391a952`])
+_nothing new to show for… yet!_
+
+<a id="0.9.0" />
+
+## [0.9.0] – _Back to our roots!_
+
+_2025.06.10_
+
+In the last few days, I dug Jilu in a hole that kept getting deeper. It
+started with the question “how can I fit Jilu in the release flow I
+want”, and ended with “now, how do I make Jilu create signed annotated
+tags?”
+
+Jilu is *not* a release management tool. It is a change log generator.
+Jilu needs access to Git, yes, but it should *never* need write access
+to the repository. All it needs is a list of commits, and a list of
+existing tags, nothing else. In fact, we could just have Jilu itself
+never interact with Git and feed it the commits and tags data through
+external means, but that would tip the scales in the other direction:
+making Jilu too minimalist for its own good.
+
+Instead, the right balance is this:
+
+- Jilu is a change log generator
+- It needs read access to a Git repository
+- It will never change any Git objects
+- It will only write to the change log file, if requested
+- It can be used as a cog in a larger release workflow
+
+This last item is what drove me down this rabbit hole, but here we are,
+back at the surface, this release officially seals the hole, and puts us
+on a much saner path.
+
+So how can we still achieve that last item, without having write access
+to Git? Well, we _push_ data instead of _pull_, meaning, when you run
+`jilu`, you can now ask it for structured (JSON) output with all the
+relevant change log data you could need, to feed into your release
+workflow.
+
+This is done through the new `--output` flag, which can be either
+`text`, `json`, or `none`. If you call `jilu --write`, then `--output`
+is set to `none`, If you call it as `jilu` then output is set to `text`,
+unless you explicitly set it to `none`. This is how things worked
+implicitly until this release. Now, there’s a new `json` option, which
+gives you structured data of the generated change log:
+
+```sh
+jilu --output=json
+```
+
+```json
+{
+  "config": {
+    "github": {
+      "repo": "rustic-games/jilu"
+    },
+    "accept_types": [...],
+    "type_headers": {
+      "refactor": "Refactoring",
+      ...
+    }
+  },
+  "unreleased": {
+    "changes": [],
+  },
+  "releases": [
+    {
+      "version": "0.8.0",
+      "subject": "Commit or don't, there is no such thing as a free lunch.",
+      "notes": "Swap `--tag` for `--commit`, bringing us closer to a proper release\nworkflow.",
+      "date": "2025-06-09T14:47:02Z",
+      "changeset": {
+        "changes": [
+          {
+            "type": "feat",
+            "scope": "changelog",
+            "description": "Add commit functionality to release workflow",
+            "body": "...",
+            "commit": {
+              "short_id": "83e7793",
+              "id": "83e7793ab13dcf9739f0d76684ef0e9c08b98ee4"
+            }
+          }
+        ],
+        "contributors": [
+          {
+            "name": "Jean Mertz",
+            "email": "git@jeanmertz.com"
+          }
+        ]
+      }
+    },
+    ...
+  ]
+}
+```
+
+As you can see, there’s a lot of data you can use in external tools. One
+obvious use-case is creating a release commit and tag, which is what we
+introduced in 0.8.0, and are now removing again.
+
+You can use a tool like `jq` to query this data in a script you
+maintain, or you can use the new `--jq` flag to have Jilu do the JSON
+filtering, without needing to install `jq`. This is mostly a convenience
+feature for those that don’t have Jq installed.
+
+Here’s how you can create the relevant release commit and tag in a shell
+script:
+
+```sh
+# Create a temporary file to store the change log JSON output. This is
+# required, because using `--edit` requires stdout to be a TTY for our
+# editor, so we need to write the JSON output to a file instead of
+# stdout.
+release=$(mktemp)
+
+# 1. We group the unreleased changes in a new release 0.9.0
+# 2. We edit the release notes in our $EDITOR
+# 3. We write the changes to our CHANGELOG.md
+# 4. We return the change log data as JSON to stdout
+# 5. We filter the JSON to the latest release (0.9.0)
+# 6. We write the JSON output to our temporary file
+jilu --release=v0.9.0 \
+     --edit \
+     --write \
+     --output=json \
+     --jq='.releases[0]' \
+     --output-file="$release"
+
+# 1. We make sure to stage the change log changes
+git add CHANGELOG.md
+
+# 1. We use `jq -r` to produce a raw (unquoted) string for us
+# 2. We create a new release commit message
+# 3. We commit the staged changes
+msg=$(echo "$release" | jq -r '"chore: Release v" + .version')
+git commit --message "$msg"
+
+# 1. We create a new release tag message
+# 2. We create the tag
+msg=$(echo "$release" | jq -r '[.subject, .notes] | join("\n\n")')
+git tag --sign --message "$msg"
+```
+
+This is one example, but it shows how you can use the structured data
+any way you want in your release pipeline, without Jilu becoming a
+bloated complicated tool that does too many things poorly, instead of a
+dedicated tool that does a few things extremely well.
+
+
+### Changes
+
+#### Features
+
+- **Add JSON output with JQ filtering support** ([`e52d264`])
+
+  Transform Jilu from a release management tool into a pure changelog
+  generator by removing Git write capabilities and introducing structured
+  JSON output. Users can now extract changelog data programmatically
+  through the new `--output=json` flag and filter it using the `--jq` flag
+  for integration into custom release workflows. A `--output-file` flag is
+  available to allow using `--write` and `--output` together.
+
+  The new JSON output includes complete changelog metadata including
+  configuration, unreleased changes, and release history with all
+  associated commit and contributor information. This enables external
+  tools to consume structured changelog data without requiring Jilu to
+  have write access to Git repositories.
+
+  The `--output` flag supports three modes: `text` (default for display),
+  `json` (structured data), and `none` (when using `--write`). The `--jq`
+  flag provides built-in JSON filtering without requiring external `jq`
+  installation, including a custom `raw` function for unquoted string
+  output.
+
+#### Bug Fixes
+
+- **properly render release headings on Github** ([`391a952`])
 
 <a id="0.8.0" />
 
@@ -593,7 +771,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.8.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/rustic-games/jilu/releases/tag/v0.9.0
 [0.8.0]: https://github.com/rustic-games/jilu/releases/tag/v0.8.0
 [0.7.0]: https://github.com/rustic-games/jilu/releases/tag/v0.7.0
 [0.6.0]: https://github.com/rustic-games/jilu/releases/tag/v0.6.0
@@ -606,6 +785,7 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [commits] -->
 
+[`e52d264`]: https://github.com/rustic-games/jilu/commit/e52d26449f430dbf8a066d9d005cee8a273f1873
 [`391a952`]: https://github.com/rustic-games/jilu/commit/391a9525a6b824e81073be36d6570fb456eba51e
 [`83e7793`]: https://github.com/rustic-games/jilu/commit/83e7793ab13dcf9739f0d76684ef0e9c08b98ee4
 [`95f91a0`]: https://github.com/rustic-games/jilu/commit/95f91a0d63864a40e7a424a0940461a8c0b90da7

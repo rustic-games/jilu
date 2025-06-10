@@ -141,7 +141,9 @@ impl Opts {
         let release = release.or_else(|| env::var("RELEASE").ok());
         let release_notes = release_notes.or_else(|| env::var("RELEASE_NOTES").ok());
         let edit_release_notes = edit_release_notes || env::var("RELEASE_EDIT").is_ok();
-        if write && output.is_some() && output_file.is_none() {
+        if !write && output.is_none() {
+            output = Some("text".to_owned());
+        } else if write && output.is_some() && output_file.is_none() {
             Err(lexopt::Error::from(
                 "Using --write and --output together requires --output-file.",
             ))?;

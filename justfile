@@ -61,4 +61,4 @@ release VERSION:
     # 2. Run `goreleaser` to create the release on GitHub
     export GORELEASER_RELEASE_SUBJECT=$(echo "$release" | jq -r '.subject')
     export GORELEASER_RELEASE_NOTES=$(echo "$release" | jq -r '.notes')
-    goreleaser release --clean --release-notes=CHANGELOG.md
+    goreleaser release --clean

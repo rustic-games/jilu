@@ -47,6 +47,3 @@ release:
   header: "{{ .Env.GORELEASER_RELEASE_NOTES }}"
   footer: ""
   include_meta: false
-
-after:
-  - cmd: "cargo publish {{ if .IsSnapshot }}--dry-run{{ end }} --quiet --no-verify"

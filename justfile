@@ -59,6 +59,7 @@ release VERSION: _check-git-index _check-goreleaser (_install "cargo-edit@^0.13"
     export GORELEASER_RELEASE_SUBJECT="$(echo "$msg" | head -n1)"
     export GORELEASER_RELEASE_NOTES="$(echo "$msg" | tail -n+3)"
     goreleaser release --clean
+    cargo publish --quiet --no-verify
 
 # Make sure there are no uncommitted changes.
 _check-git-index:

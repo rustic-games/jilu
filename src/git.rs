@@ -47,7 +47,11 @@ pub struct Signature {
 /// where not all commits adhere to the expected format.
 ///
 /// Any unexpected error is still bubbled up to the callee.
-pub fn commits(repo: &Repository, root: Option<&str>) -> Result<Vec<Commit>, Error> {
+pub fn commits(
+    repo: &Repository,
+    root: Option<&str>,
+    ignore_commits: &[String],
+) -> Result<Vec<Commit>, Error> {
     let mut walk = repo.revwalk()?;
     walk.push_head()?;
     walk.simplify_first_parent()?;
@@ -67,7 +71,7 @@ pub fn commits(repo: &Repository, root: Option<&str>) -> Result<Vec<Commit>, Err
         result.map_err(|err| (None, err.into())).and_then(|oid| {
             repo.find_commit(oid)
                 .map_err(Into::into)
-                .and_then(TryInto::try_into)
+                .and_then(Commit::try_from)
                 .map_err(|err| (Some(oid), err))
         })
     })
@@ -87,7 +91,7 @@ pub fn commits(repo: &Repository, root: Option<&str>) -> Result<Vec<Commit>, Err
             // are bubbled up to the callee.
             _ => Some(Err(err)),
         },
-        Ok(commit) => Some(Ok(commit)),
+        Ok(commit) => (!ignore_commits.contains(&commit.id)).then_some(Ok(commit)),
     })
     .collect()
 }

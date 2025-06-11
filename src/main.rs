@@ -166,7 +166,7 @@ impl Opts {
 fn run(opts: Opts) -> Result<String, Error> {
     let repo = git2::Repository::open(".")?;
     let config = Config::from_environment(&repo, &opts.file)?;
-    let commits = git::commits(&repo, config.root_commit.as_deref())?;
+    let commits = git::commits(&repo, config.root_commit.as_deref(), &config.ignore_commits)?;
     let mut tags = git::tags(&repo, &commits)?;
 
     if let Some(version) = opts.release {

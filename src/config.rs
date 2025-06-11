@@ -22,6 +22,10 @@ pub struct Config {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub root_commit: Option<String>,
 
+    /// A list of commits to ignore.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub ignore_commits: Vec<String>,
+
     #[serde(skip)]
     pub template: Option<String>,
 
@@ -51,6 +55,7 @@ impl Default for Config {
             type_headers,
             scope_headers: HashMap::new(),
             root_commit: None,
+            ignore_commits: Vec::new(),
             template: None,
             metadata: None,
         }

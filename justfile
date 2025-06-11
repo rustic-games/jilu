@@ -5,16 +5,10 @@ run *ARGS:
     export IGNORE_CONTRIBUTORS="jean@mertz.fm,git@jeanmertz.com"
     cargo run -- {{ARGS}}
 
-release VERSION:
+release VERSION: _check-git-index _check-goreleaser (_install "cargo-edit@^0.13" "jaq@^2.2")
     #!/usr/bin/env sh
     set -e
     version="{{VERSION}}"
-
-    # Make sure there are no uncommitted changes.
-    if ! git diff-index --quiet HEAD --; then
-        echo >&2 "Dirty workspace. Commit or stash changes first."
-        exit 1
-    fi
 
     # Get the last annotated git tag.
     last_version="$(git describe --abbrev=0)"
@@ -53,7 +47,7 @@ release VERSION:
     # 1. Create a new release tag message
     # 2. Create the tag
     # 3. Push the latest commit and tag
-    msg="$(echo "$release" | jq -r '[.subject, .notes] | join("\n\n") | trim')"
+    msg="$(echo "$release" | jaq -r '[.subject, .notes] | join("\n\n") | trim')"
     git tag --sign --message "$msg" "v$version"
     git push --tags
     git push
@@ -65,3 +59,29 @@ release VERSION:
     export GORELEASER_RELEASE_SUBJECT="$(echo "$msg" | head -n1)"
     export GORELEASER_RELEASE_NOTES="$(echo "$msg" | tail -n+3)"
     goreleaser release --clean
+
+# Make sure there are no uncommitted changes.
+@_check-git-index:
+    #!/usr/bin/env sh
+    set -e
+
+    if ! git diff-index --quiet HEAD --; then
+        echo >&2 "Dirty workspace. Commit or stash changes first."
+        exit 1
+    fi
+
+# Make sure goreleaser is installed.
+@_check-goreleaser:
+    #!/usr/bin/env sh
+    set -e
+
+    if ! goreleaser --version &>/dev/null; then
+        echo >&2 "goreleaser is not installed. Visit https://goreleaser.com/ to install it."
+        exit 1
+    fi
+
+@_install +CRATES: _install-binstall
+    cargo binstall --locked --quiet --disable-telemetry --no-confirm --only-signed {{CRATES}}
+
+@_install-binstall:
+    cargo install --locked --quiet --version ^1.12 cargo-binstall

@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.13.1`](#0.13.1) – _2025.06.11_
 - [`0.13.0`](#0.13.0) – _2025.06.11_
 - [`0.12.0`](#0.12.0) – _2025.06.11_
 - [`0.11.0`](#0.11.0) – _2025.06.11_
@@ -30,6 +31,17 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+<a id="0.13.1" />
+
+## [0.13.1]
+
+_2025.06.11_
+### Changes
+
+#### Bug Fixes
+
+- **remove contributor empty lines in default template** ([`fcbb1d3`])
 
 <a id="0.13.0" />
 
@@ -1004,7 +1016,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.13.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/rustic-games/jilu/releases/tag/v0.13.1
 [0.13.0]: https://github.com/rustic-games/jilu/releases/tag/v0.13.0
 [0.12.0]: https://github.com/rustic-games/jilu/releases/tag/v0.12.0
 [0.11.0]: https://github.com/rustic-games/jilu/releases/tag/v0.11.0
@@ -1022,6 +1035,7 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [commits] -->
 
+[`fcbb1d3`]: https://github.com/rustic-games/jilu/commit/fcbb1d39f081ce962e47b2fd7a7093be387ca0d2
 [`11bc91d`]: https://github.com/rustic-games/jilu/commit/11bc91dccf1880f38b2ff0c496611ad5ca684eb8
 [`e9b2784`]: https://github.com/rustic-games/jilu/commit/e9b2784f5a7d769bebdc45aa11b995fc967352a5
 [`1d01661`]: https://github.com/rustic-games/jilu/commit/1d01661320eab9fc538c104866aa098e7ae48dc7

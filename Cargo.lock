@@ -558,7 +558,7 @@ dependencies = [
 
 [[package]]
 name = "jilu"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "Inflector",
  "chrono",

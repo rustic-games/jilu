@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.12.0`](#0.12.0) – _2025.06.11_
 - [`0.11.0`](#0.11.0) – _2025.06.11_
 - [`0.10.0`](#0.10.0) – _2025.06.10_
 - [`0.9.0`](#0.9.0) – _2025.06.10_
@@ -28,6 +29,31 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+<a id="0.12.0" />
+
+## [0.12.0] – _A promise made is a promise kept._
+
+_2025.06.11_
+
+It took the better part of five years to keep this promise, but here we
+are.
+
+### Changes
+
+#### Features
+
+- **Add support for ignoring specific commits** ([`e9b2784`])
+
+  Users can now configure the `ignore_commits` field in their
+  configuration to provide a list of commit hashes that will be filtered
+  out during change log generation.
+
+- **Add root commit filtering for changelog generation** ([`1d01661`])
+
+  This change introduces the ability to specify a `root_commit` in the
+  configuration to limit changelog generation to commits newer than the
+  specified commit.
 
 <a id="0.11.0" />
 
@@ -823,7 +849,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.11.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/rustic-games/jilu/releases/tag/v0.12.0
 [0.11.0]: https://github.com/rustic-games/jilu/releases/tag/v0.11.0
 [0.10.0]: https://github.com/rustic-games/jilu/releases/tag/v0.10.0
 [0.9.0]: https://github.com/rustic-games/jilu/releases/tag/v0.9.0
@@ -839,6 +866,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [commits] -->
 
+[`e9b2784`]: https://github.com/rustic-games/jilu/commit/e9b2784f5a7d769bebdc45aa11b995fc967352a5
+[`1d01661`]: https://github.com/rustic-games/jilu/commit/1d01661320eab9fc538c104866aa098e7ae48dc7
 [`7f7854f`]: https://github.com/rustic-games/jilu/commit/7f7854f88df5c5c96f1f8ecc40cfbc930cc066d0
 [`f0274d6`]: https://github.com/rustic-games/jilu/commit/f0274d6d85f30edad1659bcb8fe2396d2e87f1e7
 [`e08fb2c`]: https://github.com/rustic-games/jilu/commit/e08fb2c5f5183de3508832c63b627d29cce98cce

@@ -5,7 +5,7 @@ run *ARGS:
     export IGNORE_CONTRIBUTORS="jean@mertz.fm,git@jeanmertz.com"
     cargo run -- {{ARGS}}
 
-release VERSION: _check-git-index _check-goreleaser (_install "cargo-edit@^0.13" "jaq@^2.2")
+release VERSION: (_check-env-var "GITHUB_TOKEN") _check-git-index _check-goreleaser (_install "cargo-edit@^0.13" "jaq@^2.2")
     #!/usr/bin/env sh
     set -e
     version="{{VERSION}}"
@@ -60,6 +60,14 @@ release VERSION: _check-git-index _check-goreleaser (_install "cargo-edit@^0.13"
     export GORELEASER_RELEASE_NOTES="$(echo "$msg" | tail -n+3)"
     goreleaser release --clean
     cargo publish --quiet --no-verify
+
+# Make sure the environment variable is set.
+_check-env-var NAME:
+    #!/usr/bin/env sh
+    if [ -z "${{NAME}}" ]; then
+        echo >&2 "Environment variable {{NAME}} is required."
+        exit 1
+    fi
 
 # Make sure there are no uncommitted changes.
 _check-git-index:

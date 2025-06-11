@@ -26,6 +26,9 @@ pub struct Config {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub ignore_commits: Vec<String>,
 
+    /// A list of footer tokens (e.g. `Co-authored-by`) to use to find contributors.
+    pub contributor_footers: Vec<String>,
+
     #[serde(skip)]
     pub template: Option<String>,
 
@@ -49,6 +52,19 @@ impl Default for Config {
             .map(|(k, v)| (k.to_owned(), v.to_owned()))
             .collect();
 
+        let contributor_footers = vec![
+            "co-authored-by",
+            "signed-off-by",
+            "reported-by",
+            "tested-by",
+            "reviewed-by",
+            "suggested-by",
+            "acked-by",
+        ]
+        .into_iter()
+        .map(Into::into)
+        .collect();
+
         Self {
             github: None,
             accept_types: None,
@@ -56,6 +72,7 @@ impl Default for Config {
             scope_headers: HashMap::new(),
             root_commit: None,
             ignore_commits: Vec::new(),
+            contributor_footers,
             template: None,
             metadata: None,
         }

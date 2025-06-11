@@ -10,8 +10,8 @@ pub(crate) struct Contributor {
 impl From<(&str, &str)> for Contributor {
     fn from((name, email): (&str, &str)) -> Self {
         Self {
-            name: name.to_owned(),
-            email: email.to_owned(),
+            name: name.trim().to_owned(),
+            email: email.trim().to_owned(),
         }
     }
 }

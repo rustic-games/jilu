@@ -64,14 +64,50 @@ impl<'a> Change<'a> {
         &self.commit.id
     }
 
-    /// The contributor details of this change.
-    pub(crate) fn contributor(&self) -> Contributor {
+    /// The author details of this change.
+    pub(crate) fn author(&self) -> Contributor {
         (
             self.commit.author.name.as_str(),
             self.commit.author.email.as_str(),
         )
             .into()
     }
+
+    /// The committer details of this change.
+    pub(crate) fn committer(&self) -> Contributor {
+        (
+            self.commit.committer.name.as_str(),
+            self.commit.committer.email.as_str(),
+        )
+            .into()
+    }
+
+    /// The list of contributors for this change.
+    ///
+    /// This includes the author and committer of the change, as well as any
+    /// contributors listed in the footers of the commit.
+    pub(crate) fn contributors(&self, contributor_footers: &[String]) -> Vec<Contributor> {
+        let mut contributors: Vec<_> = self
+            .conventional
+            .footers()
+            .iter()
+            .filter(|f| contributor_footers.contains(&f.token().to_ascii_lowercase()))
+            .filter_map(|f| parse_contributor_footer(f.value()))
+            .chain([self.author(), self.committer()])
+            .collect();
+
+        contributors.sort_unstable();
+        contributors.dedup();
+        contributors
+    }
+}
+
+/// Best-effort parsing of a contributor from a commit footer.
+fn parse_contributor_footer(value: &str) -> Option<Contributor> {
+    let (name, email) = value.rsplit_once('<').unwrap_or((value, ""));
+    let email = email.rsplit_once('>').unwrap_or((email, "")).0;
+
+    Some((name, email).into())
 }
 
 impl fmt::Display for Change<'_> {
@@ -94,30 +130,36 @@ impl Serialize for Change<'_> {
     where
         S: Serializer,
     {
-        let mut commit = HashMap::new();
-        commit.insert("id", self.id());
-        commit.insert("short_id", self.short_id());
+        let mut count = 5;
 
+        let scope = self.scope().inspect(|_| count += 1);
+        let body = self.body().inspect(|_| count += 1);
+        let commit = HashMap::from([("id", self.id()), ("short_id", self.short_id())]);
         let merge_commit = self.merge_commit_description().map(|c| {
-            let mut map: HashMap<&str, Value> = HashMap::new();
-            map.insert("description", c.description().into());
-            map.insert("pr_number", c.pr_number().into());
-            map
+            count += 1;
+            HashMap::<_, Value>::from([
+                ("description", c.description().into()),
+                ("pr_number", c.pr_number().into()),
+            ])
         });
 
-        let mut state = serializer.serialize_struct("Change", 4)?;
+        let mut state = serializer.serialize_struct("Change", count)?;
         state.serialize_field("type", self.type_())?;
-        if let Some(scope) = self.scope() {
+        state.serialize_field("description", self.description())?;
+        state.serialize_field("commit", &commit)?;
+        state.serialize_field("author", &self.author())?;
+        state.serialize_field("committer", &self.committer())?;
+
+        if let Some(scope) = scope {
             state.serialize_field("scope", &scope)?;
         }
-        state.serialize_field("description", self.description())?;
         if let Some(merge_commit) = merge_commit {
             state.serialize_field("merge_commit_description", &merge_commit)?;
         }
-        if let Some(body) = self.body() {
+        if let Some(body) = body {
             state.serialize_field("body", &body)?;
         }
-        state.serialize_field("commit", &commit)?;
+
         state.end()
     }
 }
@@ -214,5 +256,25 @@ impl<'a> GithubMergeCommit<'a> {
 
     pub(crate) fn pr_number(&self) -> usize {
         self.pr_number
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_contributor_footer() {
+        #[rustfmt::skip]
+        let cases = [
+            ("John", Some(("John", ""))),
+            ("John Doe", Some(("John Doe", ""))),
+            ("john@doe.com", Some(("john@doe.com", ""))),
+            ("John Doe <john@doe.com>", Some(("John Doe", "john@doe.com"))),
+        ];
+
+        for (value, expected) in cases {
+            assert_eq!(parse_contributor_footer(value), expected.map(Into::into));
+        }
     }
 }

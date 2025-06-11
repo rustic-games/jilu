@@ -9,9 +9,17 @@ use serde::Serialize;
 pub struct ChangeSet<'a> {
     /// Internal reference to the changes in this change set.
     changes: Vec<Change<'a>>,
+    contributor_footers: &'a [String],
 }
 
 impl<'a> ChangeSet<'a> {
+    pub(crate) fn new(contributor_footers: &'a [String]) -> Self {
+        Self {
+            changes: Vec::new(),
+            contributor_footers,
+        }
+    }
+
     /// Given a set of Git commits, take all commits belonging to this change
     /// set.
     ///
@@ -106,7 +114,7 @@ impl<'a> ChangeSet<'a> {
         let mut contributors: Vec<_> = self
             .changes
             .iter()
-            .map(Change::contributor)
+            .flat_map(|v| Change::contributors(v, self.contributor_footers))
             .filter(|c| !ignore.unwrap_or(&[]).iter().any(|email| email == &c.email))
             .collect();
 

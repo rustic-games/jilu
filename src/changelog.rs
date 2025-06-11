@@ -29,7 +29,7 @@ impl<'a> Changelog<'a> {
             .collect::<Result<Vec<_>, _>>()?;
 
         for release in &mut releases {
-            let mut changeset = ChangeSet::default();
+            let mut changeset = ChangeSet::new(&config.contributor_footers);
             offset = changeset.take_commits(
                 offset,
                 commits,
@@ -41,7 +41,7 @@ impl<'a> Changelog<'a> {
 
         releases.reverse();
 
-        let mut unreleased = ChangeSet::default();
+        let mut unreleased = ChangeSet::new(&config.contributor_footers);
         unreleased.take_commits(offset, commits, &config.accept_types, None)?;
 
         Ok(Self {

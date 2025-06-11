@@ -46,11 +46,8 @@ Thank you all for your contributions. Your work – no matter how significant �
 greatly appreciated by the community. 💖
 
 - Bart Simpson (<bart@simpsons.com>)
-
 - Homer Simpson (<homer@simpsons.com>)
-
 - Lisa Simpson (<lisa@simpsons.com>)
-
 - Marge Simpson (<marge@simpsons.com>)
 
 ### Changes

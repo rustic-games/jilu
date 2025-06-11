@@ -56,9 +56,8 @@ Thank you all for your contributions. Your work – no matter how significant �
 greatly appreciated by the community. 💖
 {% for contributor in contributors %}
 - {{ contributor.name }} (<{{ contributor.email }}>)
-{% endfor %}
-
-{%- endif %}
+{%- endfor %}
+{% endif %}
 ### Changes
 
 {% for type, changes in release.changeset.changes | group_by(attribute="type") -%}

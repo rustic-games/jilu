@@ -69,7 +69,18 @@ impl fmt::Display for Error {
             Git(ref err) => write!(f, "Git error: {}", err),
             MissingCommitMessage => f.write_str("Missing commit message"),
             SemVer(ref err) => write!(f, "SemVer error: {}", err),
-            Template(ref err) => write!(f, "Template error: {}", err),
+            Template(ref err) => write!(f, "Template error: {}", {
+                use std::error::Error as _;
+
+                let mut msg = err.to_string();
+                let mut source = err.source();
+                while let Some(err) = source {
+                    msg.push_str(&format!(": {}", err));
+                    source = err.source();
+                }
+
+                msg
+            }),
             Timestamp(ref err) => write!(f, "Timestamp error: {}", err),
             Utf8Error => f.write_str("UTF-8 error"),
             Json(ref err) => write!(f, "JSON error: {}", err),

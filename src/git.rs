@@ -3,7 +3,7 @@ use chrono::{
     offset::{TimeZone, Utc},
     DateTime,
 };
-use git2::{ObjectType, Repository, Sort};
+use git2::{ObjectType, Oid, Repository, Sort};
 use semver::Version;
 use std::convert::{TryFrom, TryInto};
 
@@ -47,11 +47,19 @@ pub struct Signature {
 /// where not all commits adhere to the expected format.
 ///
 /// Any unexpected error is still bubbled up to the callee.
-pub fn commits(repo: &Repository) -> Result<Vec<Commit>, Error> {
+pub fn commits(repo: &Repository, root: Option<&str>) -> Result<Vec<Commit>, Error> {
     let mut walk = repo.revwalk()?;
     walk.push_head()?;
     walk.simplify_first_parent()?;
     walk.set_sorting(Sort::REVERSE | Sort::TOPOLOGICAL)?;
+
+    if let Some(root) = root {
+        let oid = Oid::from_str(root)?;
+        let commit = repo.find_commit(oid)?;
+        for parent in commit.parents() {
+            walk.hide(parent.id())?;
+        }
+    }
 
     // walk the tree of commits, keeping track of the object ID throughout the
     // process to be able to point towards any commits causing an error.
@@ -95,7 +103,7 @@ pub fn commits(repo: &Repository) -> Result<Vec<Commit>, Error> {
 /// tags adhere to the expected format.
 ///
 /// Any unexpected error is still bubbled up to the callee.
-pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
+pub fn tags(repo: &Repository, commits: &[Commit]) -> Result<Vec<Tag>, Error> {
     let mut tags: Vec<Tag> = repo
         .tag_names(None)?
         .into_iter()
@@ -138,7 +146,10 @@ pub fn tags(repo: &Repository) -> Result<Vec<Tag>, Error> {
                 // and are bubbled up to the callee.
                 _ => Some(Err(err)),
             },
-            Ok(tag) => Some(Ok(tag)),
+            Ok(tag) => commits
+                .iter()
+                .any(|c| c.id == tag.commit.id)
+                .then_some(Ok(tag)),
         })
         .collect::<Result<Vec<_>, _>>()?;
 

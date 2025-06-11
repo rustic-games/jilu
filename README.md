@@ -192,9 +192,8 @@ Commit messages that need to be excluded can be, based on a set of rules:
 
 - [x] non-conventional commit messages are ignored
 - [x] conventional commit types (such as `chore`) can be excluded
+- [x] a root commit can be provided to ignore older commits
 - [ ] **_work in progress_** ~~a list of blacklisted commits can be provided~~
-- [ ] **_work in progress_** ~~a root commit can be provided to ignore older
-      commits~~
 
 #### Configurable
 
@@ -229,6 +228,7 @@ Config(
   scope_headers: {
     "ui": "User Interface",
   }
+  root_commit: "...",
 )
 
 Template(

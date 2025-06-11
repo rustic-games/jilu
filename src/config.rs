@@ -18,6 +18,10 @@ pub struct Config {
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub scope_headers: HashMap<String, String>,
 
+    /// The root commit to start the change log from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub root_commit: Option<String>,
+
     #[serde(skip)]
     pub template: Option<String>,
 
@@ -46,6 +50,7 @@ impl Default for Config {
             accept_types: None,
             type_headers,
             scope_headers: HashMap::new(),
+            root_commit: None,
             template: None,
             metadata: None,
         }

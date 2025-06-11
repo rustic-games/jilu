@@ -123,9 +123,7 @@ impl Serialize for ChangeSet<'_> {
     {
         let mut state = serializer.serialize_struct("ChangeSet", 2)?;
         state.serialize_field("changes", &self.changes())?;
-        if !self.contributors(None).is_empty() {
-            state.serialize_field("contributors", &self.contributors(None))?;
-        }
+        state.serialize_field("contributors", &self.contributors(None))?;
         state.end()
     }
 }

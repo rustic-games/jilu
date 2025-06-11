@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.11.0`](#0.11.0) – _2025.06.11_
 - [`0.10.0`](#0.10.0) – _2025.06.10_
 - [`0.9.0`](#0.9.0) – _2025.06.10_
 - [`0.8.0`](#0.8.0) – _2025.06.09_
@@ -27,6 +28,34 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+<a id="0.11.0" />
+
+## [0.11.0]
+
+_2025.06.11_
+
+This release allows release notes without subjects. If a tag message
+contains multiple lines without a newline between the first and second
+line, the entire message will be used as part of the release note,
+instead of treating the first line as the release title.
+
+### Changes
+
+#### Bug Fixes
+
+- **Improve git tag message parsing for subject extraction** ([`7f7854f`])
+
+  The previous implementation incorrectly parsed multi-line git tag
+  messages, failing to distinguish between subject and body when there
+  wasn't a proper blank line separator. This caused some tags to be
+  treated as having a subject when they didn't.
+
+  The updated logic now properly handles the Git convention where a tag
+  message must have an empty line between the subject and body. If there's
+  no empty second line followed by additional content, the entire message
+  is treated as body-only, this allows for untitled releases that still
+  have release notes attached to the tag.
 
 <a id="0.10.0" />
 
@@ -794,7 +823,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.10.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/rustic-games/jilu/releases/tag/v0.11.0
 [0.10.0]: https://github.com/rustic-games/jilu/releases/tag/v0.10.0
 [0.9.0]: https://github.com/rustic-games/jilu/releases/tag/v0.9.0
 [0.8.0]: https://github.com/rustic-games/jilu/releases/tag/v0.8.0
@@ -809,6 +839,7 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [commits] -->
 
+[`7f7854f`]: https://github.com/rustic-games/jilu/commit/7f7854f88df5c5c96f1f8ecc40cfbc930cc066d0
 [`f0274d6`]: https://github.com/rustic-games/jilu/commit/f0274d6d85f30edad1659bcb8fe2396d2e87f1e7
 [`e08fb2c`]: https://github.com/rustic-games/jilu/commit/e08fb2c5f5183de3508832c63b627d29cce98cce
 [`b0dcc8a`]: https://github.com/rustic-games/jilu/commit/b0dcc8a5e9eb4d6ea1a1c60156f34e0a6a61e6db

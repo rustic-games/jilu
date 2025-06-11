@@ -68,10 +68,32 @@ impl<'a> Release<'a> {
     ///
     /// This is similar to the _first line_ of the Git tag annotated message.
     ///
+    /// Note that a tag with multiple lines *MUST* have an empty line between
+    /// the subject and the body, otherwise the tag is considered to only have a
+    /// body, but not a subject.
+    ///
     /// If a lightweight tag was used to tag the release, it will have no
     /// subject.
     pub(crate) fn subject(&self) -> Option<&str> {
-        self.tag.message.as_ref().and_then(|m| m.lines().next())
+        self.tag
+            .message
+            .as_ref()
+            .filter(|m| !m.trim().is_empty())
+            .and_then(|m| {
+                let mut lines = m.lines();
+                let first = lines.next()?;
+                if lines
+                    .next()
+                    // If there is no second line, or the second line is empty
+                    // and there is a third line which is not empty, then the
+                    // first line is the subject.
+                    .is_none_or(|v| v.is_empty() && lines.next().is_some_and(|v| !v.is_empty()))
+                {
+                    return Some(first);
+                }
+
+                None
+            })
     }
 
     /// The release notes.
@@ -83,13 +105,13 @@ impl<'a> Release<'a> {
     /// notes.
     pub(crate) fn notes(&self) -> Option<&str> {
         self.tag.message.as_ref().and_then(|msg| {
-            let begin = msg.find('\n').unwrap_or(0);
+            let begin = self.subject().and_then(|_| msg.find('\n')).unwrap_or(0);
             let end = msg
                 .find("-----BEGIN")
                 .unwrap_or(msg.len())
                 .saturating_sub(1);
 
-            msg.get(begin..=end).map(str::trim)
+            msg.get(begin..end).map(str::trim)
         })
     }
 

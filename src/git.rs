@@ -203,15 +203,14 @@ impl TryFrom<git2::Tag<'_>> for Tag {
     type Error = Error;
 
     fn try_from(tag: git2::Tag<'_>) -> Result<Self, Error> {
-        if tag.target_type() != Some(ObjectType::Commit) {
-            return Err(Error::InvalidTag);
-        }
-
         let name = tag.name().ok_or(Error::Utf8Error)?.to_owned();
         let version = Version::parse(name.strip_prefix('v').unwrap_or(&name))?;
 
         Ok(Self {
-            message: tag.message().map(str::to_owned),
+            message: tag
+                .message()
+                .filter(|m| !m.trim().is_empty())
+                .map(str::to_owned),
             name,
             version,
             tagger: tag.tagger().map(TryInto::try_into).transpose()?,

@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.13.0`](#0.13.0) – _2025.06.11_
 - [`0.12.0`](#0.12.0) – _2025.06.11_
 - [`0.11.0`](#0.11.0) – _2025.06.11_
 - [`0.10.0`](#0.10.0) – _2025.06.10_
@@ -29,6 +30,57 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+<a id="0.13.0" />
+
+## [0.13.0] – _The Simpsons Release_
+
+_2025.06.11_
+
+A release to improve contribution tracking, with special guests.
+
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Bart Simpson (<bart@simpsons.com>)
+
+- Homer Simpson (<homer@simpsons.com>)
+
+- Lisa Simpson (<lisa@simpsons.com>)
+
+- Marge Simpson (<marge@simpsons.com>)
+
+### Changes
+
+#### Features
+
+- **Support contributor footers in changelog generation** ([`11bc91d`])
+
+  This change enhances contributor tracking by expanding beyond just
+  commit authors to include contributors listed in commit footers. The
+  system now recognizes common footer tokens like `Co-authored-by`,
+  `Signed-off-by`, `Reviewed-by`, and others to create a comprehensive
+  list of contributors for each change.
+
+  The list of contributor footers can be configured using the
+  `contributor_footers` configuration option.
+
+  The list defaults to:
+
+  - co-authored-by
+  - signed-off-by
+  - reported-by
+  - tested-by
+  - reviewed-by
+  - suggested-by
+  - acked-by
+
+  The author and committer of a change are always included in the list of
+  contributors, contributors are sorted alphabetically, and duplicate
+  entries are removed.
 
 <a id="0.12.0" />
 
@@ -88,6 +140,112 @@ instead of treating the first line as the release title.
 ## [0.10.0]
 
 _2025.06.10_
+### Contributions
+
+This release is made possible by the following people (in alphabetical order).
+Thank you all for your contributions. Your work – no matter how significant – is
+greatly appreciated by the community. 💖
+
+- Jean Mertz <git@jeanmertz.com>
+
+$ ------------------------ >8 ------------------------
+$ Do not modify or remove the line above.
+$ Everything below it will be ignored.
+$
+$ On branch main
+$ Your branch is ahead of 'origin/main' by 1 commit.
+$   (use "git push" to publish your local commits)
+$
+$ Changes to be committed:
+$	modified:   src/changelog.rs
+$	modified:   src/main.rs
+$
+$ Changes not staged for commit:
+$	modified:   src/main.rs
+$
+$ Untracked files:
+$	.github/templates/tag.md
+$
+diff --git a/src/changelog.rs b/src/changelog.rs
+index 9911764..8ad1600 100644
+--- a/src/changelog.rs
++++ b/src/changelog.rs
+@@ -62,7 +62,7 @@ impl<'a> Changelog<'a> {
+         &self.unreleased
+     }
+
+-    pub fn render(&self) -> Result<String, Error> {
++    pub fn render(&self, include_metadata: bool) -> Result<String, Error> {
+         let context = tera::Context::from_serialize(self)?;
+         let mut tera = tera::Tera::default();
+         let template = self
+@@ -80,8 +80,10 @@ impl<'a> Changelog<'a> {
+         tera.register_filter("scopeheader", scope_header);
+
+         let mut log = tera.render("template", &context)?;
+-        if let Some(metadata) = &self.config.metadata {
+-            log.push_str(&format!("\n{}\n", metadata));
++        if include_metadata {
++            if let Some(metadata) = &self.config.metadata {
++                log.push_str(&format!("\n\n{}\n", metadata));
++            }
+         }
+
+         Ok(log)
+diff --git a/src/main.rs b/src/main.rs
+index 3d009ce..8bad0d9 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -52,6 +52,9 @@ struct Opts {
+     /// `stdout`.
+     write: bool,
+
++    /// If set, the change log will be rendered without inline configuration.
++    strip_config: bool,
++
+     /// Output the release notes either in `text` or `json` format. Defaults to
+     /// `text`, unless `write` is set, in which case it defaults to `none`.
+     output: Option<String>,
+@@ -78,6 +81,7 @@ impl Opts {
+         use lexopt::{Arg::*, ValueExt as _};
+
+         let mut write = false;
++        let mut strip_config = false;
+         let mut output = None;
+         let mut output_file = None;
+         let mut file = None;
+@@ -115,6 +119,9 @@ impl Opts {
+                 Short('e') | Long("edit") => {
+                     edit_release_notes = true;
+                 }
++                Long("strip-config") => {
++                    strip_config = true;
++                }
+                 Short('h') | Long("help") => {
+                     println!("Usage: jilu [-r|--release=VERSION] [-n|--notes=RELEASE_NOTES] [-e|--edit] [-w|--write] [CHANGELOG]");
+                     std::process::exit(0);
+@@ -143,6 +150,7 @@ impl Opts {
+         Ok(Self {
+             file,
+             write,
++            strip_config,
+             output,
+             output_file,
+             release,
+@@ -175,11 +183,11 @@ fn run(opts: Opts) -> Result (<String, Error> {
+     let log = Changelog::new(&config, &commits, tags)?;
+
+     if opts.write {
+-        std::fs::write(&opts.file, log.render()?)?;
++        std::fs::write(&opts.file, log.render(!opts.strip_config)?)?;
+     }
+
+     match (opts.output.as_deref(), opts.jq.as_deref()) {
+-        (Some("text"), _) => Ok(log.render()?),
++        (Some("text"), _) => Ok(log.render(!opts.strip_config)?),
+         (Some("json"), None) => Ok(serde_json::to_string(&log)?),
+         (Some("json"), Some(code)) =>)
+
 ### Changes
 
 #### Bug Fixes
@@ -849,7 +1007,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.12.0...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/rustic-games/jilu/releases/tag/v0.13.0
 [0.12.0]: https://github.com/rustic-games/jilu/releases/tag/v0.12.0
 [0.11.0]: https://github.com/rustic-games/jilu/releases/tag/v0.11.0
 [0.10.0]: https://github.com/rustic-games/jilu/releases/tag/v0.10.0
@@ -866,6 +1025,7 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [commits] -->
 
+[`11bc91d`]: https://github.com/rustic-games/jilu/commit/11bc91dccf1880f38b2ff0c496611ad5ca684eb8
 [`e9b2784`]: https://github.com/rustic-games/jilu/commit/e9b2784f5a7d769bebdc45aa11b995fc967352a5
 [`1d01661`]: https://github.com/rustic-games/jilu/commit/1d01661320eab9fc538c104866aa098e7ae48dc7
 [`7f7854f`]: https://github.com/rustic-games/jilu/commit/7f7854f88df5c5c96f1f8ecc40cfbc930cc066d0

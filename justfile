@@ -17,7 +17,7 @@ release VERSION:
     fi
 
     # Get the last annotated git tag.
-    last_version=$(git describe --abbrev=0)
+    last_version="$(git describe --abbrev=0)"
     if [ "$last_version" == "v$version" ]; then
         echo >&2 "Already on v$version. Nothing to do."
         exit 0
@@ -28,7 +28,7 @@ release VERSION:
     sed -i '' -e "s/${last_version}/v${version}/g" README.md
 
     # Create a temporary file to store the change log JSON output
-    release=$(mktemp)
+    release="$(mktemp)"
 
     # 1. Group the unreleased changes in a new release
     # 2. Edit the release notes in our $EDITOR
@@ -53,14 +53,15 @@ release VERSION:
     # 1. Create a new release tag message
     # 2. Create the tag
     # 3. Push the latest commit and tag
-    msg=$(just run --release="$version" .github/templates/tag.md)
-
+    msg="$(echo "$release" | jq -r '[.subject, .notes] | join("\n\n") | trim')"
     git tag --sign --message "$msg" "v$version"
     git push --tags
     git push
 
+    # 1. Create a new realese note subject and body
     # 1. Set environment variables to use in `.goreleaser.yml` templates
     # 2. Run `goreleaser` to create the release on GitHub
-    export GORELEASER_RELEASE_SUBJECT=$(echo "$release" | jq -r '.subject')
-    export GORELEASER_RELEASE_NOTES=$(echo "$release" | jq -r '.notes')
+    msg="$(just run --strip-config .github/templates/tag.md)"
+    export GORELEASER_RELEASE_SUBJECT="$(echo "$msg" | head -n1)"
+    export GORELEASER_RELEASE_NOTES="$(echo "$msg" | tail -n+3)"
     goreleaser release --clean

@@ -39,7 +39,11 @@ checksum:
 signs:
   - artifacts: checksum
 
+changelog:
+  disable: true
+
 release:
   name_template: "{{ .Env.GORELEASER_RELEASE_SUBJECT }}"
   header: "{{ .Env.GORELEASER_RELEASE_NOTES }}"
+  footer: ""
   include_meta: false

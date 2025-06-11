@@ -47,7 +47,7 @@ release VERSION: _check-git-index _check-goreleaser (_install "cargo-edit@^0.13"
     # 1. Create a new release tag message
     # 2. Create the tag
     # 3. Push the latest commit and tag
-    msg="$(echo "$release" | jaq -r '[.subject, .notes] | join("\n\n") | trim')"
+    msg="$(jaq -r '[.subject, .notes] | join("\n\n") | trim' $release)"
     git tag --sign --message "$msg" "v$version"
     git push --tags
     git push

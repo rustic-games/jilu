@@ -61,21 +61,17 @@ release VERSION: _check-git-index _check-goreleaser (_install "cargo-edit@^0.13"
     goreleaser release --clean
 
 # Make sure there are no uncommitted changes.
-@_check-git-index:
+_check-git-index:
     #!/usr/bin/env sh
-    set -e
-
     if ! git diff-index --quiet HEAD --; then
         echo >&2 "Dirty workspace. Commit or stash changes first."
         exit 1
     fi
 
 # Make sure goreleaser is installed.
-@_check-goreleaser:
+_check-goreleaser:
     #!/usr/bin/env sh
-    set -e
-
-    if ! goreleaser --version &>/dev/null; then
+    if ! command -v goreleaser >/dev/null 2>&1; then
         echo >&2 "goreleaser is not installed. Visit https://goreleaser.com/ to install it."
         exit 1
     fi

@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## Overview
 
 - [unreleased](#unreleased)
+- [`0.13.2`](#0.13.2) – _2025.09.04_
 - [`0.13.1`](#0.13.1) – _2025.06.11_
 - [`0.13.0`](#0.13.0) – _2025.06.11_
 - [`0.12.0`](#0.12.0) – _2025.06.11_
@@ -31,6 +32,22 @@ The format is based on [Keep a Changelog], and this project adheres to
 ## _[Unreleased]_
 
 _nothing new to show for… yet!_
+
+<a id="0.13.2" />
+
+## [0.13.2]
+
+_2025.09.04_
+
+#
+# Write a message for release:
+#   v0.13.2
+#
+# - The first line is the release title.
+# - Subsequent lines are the release notes.
+# - This comment will be stripped from the release notes
+
+### Changes
 
 <a id="0.13.1" />
 
@@ -1016,7 +1033,8 @@ Be sure to check out the project [README] if you haven't already!
 
 <!-- [releases] -->
 
-[unreleased]: https://github.com/rustic-games/jilu/compare/v0.13.1...HEAD
+[unreleased]: https://github.com/rustic-games/jilu/compare/v0.13.2...HEAD
+[0.13.2]: https://github.com/rustic-games/jilu/releases/tag/v0.13.2
 [0.13.1]: https://github.com/rustic-games/jilu/releases/tag/v0.13.1
 [0.13.0]: https://github.com/rustic-games/jilu/releases/tag/v0.13.0
 [0.12.0]: https://github.com/rustic-games/jilu/releases/tag/v0.12.0

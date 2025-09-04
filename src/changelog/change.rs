@@ -42,7 +42,7 @@ impl<'a> Change<'a> {
 
     /// The description of a Github merge commit, including the PR number, if
     /// any.
-    pub(crate) fn merge_commit_description(&self) -> Option<GithubMergeCommit> {
+    pub(crate) fn merge_commit_description(&self) -> Option<GithubMergeCommit<'_>> {
         GithubMergeCommit::new(self.description())
     }
 

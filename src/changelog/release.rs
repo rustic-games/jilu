@@ -142,7 +142,7 @@ impl<'a> Release<'a> {
     }
 
     /// The change set belonging to the release.
-    pub(crate) fn changeset(&self) -> &ChangeSet {
+    pub(crate) fn changeset(&self) -> &ChangeSet<'_> {
         &self.changeset
     }
 }

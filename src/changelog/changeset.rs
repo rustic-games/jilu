@@ -103,7 +103,7 @@ impl<'a> ChangeSet<'a> {
     }
 
     /// Return the list of changes in this change set.
-    pub fn changes(&self) -> &[Change] {
+    pub fn changes(&self) -> &[Change<'_>] {
         &self.changes
     }
 
